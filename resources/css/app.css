@@ -8,31 +8,131 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-
-    --color-zinc-50: #fafafa;
-    --color-zinc-100: #f5f5f5;
-    --color-zinc-200: #e5e5e5;
-    --color-zinc-300: #d4d4d4;
-    --color-zinc-400: #a3a3a3;
-    --color-zinc-500: #737373;
-    --color-zinc-600: #525252;
-    --color-zinc-700: #404040;
-    --color-zinc-800: #262626;
-    --color-zinc-900: #171717;
-    --color-zinc-950: #0a0a0a;
-
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+/*
+ * Canonical design tokens — docs/design/tokens.md §8, verbatim.
+ *
+ * Single dark-native theme in v1 (restyle brief §3.1): every layout hardcodes
+ * class="dark" on <html>, so the existing dark: utilities keep working and
+ * the light theme stays a declared roadmap item, not an inverted afterthought.
+ * No color, radius or duration may live outside this table.
+ */
+:root {
+    --surface-0: #0B0F14;
+    --surface-1: #11161D;
+    --surface-2: #171E27;
+    --surface-3: #1E2631;
+    --border-subtle: #232C38;
+    --border-strong: #33404F;
+    --text-primary: #E8EDF2;
+    --text-secondary: #A7B2BE;
+    --text-muted: #7B8A99;
+    --accent: #FF7A1A;
+    --accent-ink: #161006;
+    --tech: #2FD4E6;
+    --ok: #4ADE80;
+    --warn: #FBBF24;
+    --blocked: #F98080;
+    --ok-surface: #122117;
+    --warn-surface: #231D0E;
+    --blocked-surface: #231314;
+    --grid-line: rgba(47, 212, 230, .06);
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    --r-control: 6px;
+    --r-card: 10px;
+    --r-panel: 12px;
+    --t-micro: 140ms;
+    --t-panel: 200ms;
+    --ease: cubic-bezier(.2, 0, 0, 1);
 }
 
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+
+    /* Type scale — tokens.md §5: 12 / 13 / 14 (base) / 16 / 18 / 22 / 28 / 36 px. */
+    --text-xs: 0.75rem;
+    --text-xs--line-height: 1rem;
+    --text-sm: 0.8125rem;
+    --text-sm--line-height: 1.25rem;
+    --text-base: 0.875rem;
+    --text-base--line-height: 1.375rem;
+    --text-lg: 1rem;
+    --text-lg--line-height: 1.5rem;
+    --text-xl: 1.125rem;
+    --text-xl--line-height: 1.625rem;
+    --text-2xl: 1.375rem;
+    --text-2xl--line-height: 1.875rem;
+    --text-3xl: 1.75rem;
+    --text-3xl--line-height: 2.125rem;
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: 2.75rem;
+}
+
+@theme inline {
+    /* Token → utility mapping: bg-surface-2, border-border-subtle, text-tech… */
+    --color-surface-0: var(--surface-0);
+    --color-surface-1: var(--surface-1);
+    --color-surface-2: var(--surface-2);
+    --color-surface-3: var(--surface-3);
+    --color-border-subtle: var(--border-subtle);
+    --color-border-strong: var(--border-strong);
+    --color-text-primary: var(--text-primary);
+    --color-text-secondary: var(--text-secondary);
+    --color-text-muted: var(--text-muted);
+    --color-tech: var(--tech);
+    --color-ok: var(--ok);
+    --color-warn: var(--warn);
+    --color-blocked: var(--blocked);
+    --color-ok-surface: var(--ok-surface);
+    --color-warn-surface: var(--warn-surface);
+    --color-blocked-surface: var(--blocked-surface);
+    --color-grid-line: var(--grid-line);
+
+    /* Flux accent trio: primary buttons/CTAs = accent bg + accent-ink text. */
+    --color-accent: var(--accent);
+    --color-accent-content: var(--accent);
+    --color-accent-foreground: var(--accent-ink);
+    --color-accent-ink: var(--accent-ink);
+
+    /*
+     * The starter-kit views and the Flux stubs speak `zinc`: remapping the
+     * scale onto the tokens re-themes every component not yet restyled
+     * view-by-view (that happens in R-2…R-4). Only the dark: side of each
+     * pair is ever rendered (dark-only theme), and it reads the roles below.
+     */
+    --color-zinc-50: var(--text-primary);
+    --color-zinc-100: var(--text-primary);
+    --color-zinc-200: var(--text-secondary);
+    --color-zinc-300: var(--text-secondary);
+    --color-zinc-400: var(--text-secondary);
+    --color-zinc-500: var(--text-muted);
+    --color-zinc-600: var(--border-strong);
+    --color-zinc-700: var(--border-subtle);
+    --color-zinc-800: var(--surface-2);
+    --color-zinc-900: var(--surface-1);
+    --color-zinc-950: var(--surface-0);
+
+    /* Radii — tokens.md §6: controls 6px, cards 10px, panels/viewport 12px.
+       rounded-lg is what Flux puts on buttons and inputs → control radius. */
+    --radius-lg: var(--r-control);
+    --radius-xl: var(--r-panel);
+    --radius-control: var(--r-control);
+    --radius-card: var(--r-card);
+    --radius-panel: var(--r-panel);
+
+    /* Motion — tokens.md §7 (durations stay available as --t-micro/--t-panel). */
+    --ease-studio: var(--ease);
+}
+
+/* Flux defines its own .dark accent override in @layer theme (white/zinc):
+   re-declare it after the import so the token accents win in the (always
+   active) dark theme. */
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--accent);
+        --color-accent-content: var(--accent);
+        --color-accent-foreground: var(--accent-ink);
     }
 }
 
@@ -43,7 +143,53 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        /* In a dark UI borders do the job shadows can't (tokens.md §6). */
+        border-color: var(--border-subtle, currentColor);
+    }
+
+    body {
+        background-color: var(--surface-0);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        /* 14px base */
+        line-height: 1.55;
+    }
+
+    /* Base visible focus for anything Flux does not already ring (a11y §6). */
+    :focus-visible {
+        outline: 2px solid var(--border-strong);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+
+    /* Every dimensional readout: mono + tabular numbers (tokens.md §5) —
+       aligned digits are half the credibility of a readout. */
+    .mono {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        color: var(--tech);
+    }
+
+    /* Workbench grid (tokens.md §4): 3D viewport and hero backgrounds only,
+       never under text. */
+    .blueprint {
+        background-image:
+            linear-gradient(var(--grid-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+}
+
+/* Motion — tokens.md §7: reduced motion zeroes every transition. The 3D
+   canvas has its own animation loop and is not CSS-driven. */
+@media (prefers-reduced-motion: reduce) {
+
+    * {
+        transition-duration: 0ms !important;
+        animation: none !important;
     }
 }
 
@@ -52,15 +198,20 @@
 }
 
 [data-flux-label] {
-    @apply  !mb-0 !leading-tight;
+    @apply !mb-0 !leading-tight;
+}
+
+/* Inputs live on surface-2 (the interactive elevation) with strong borders,
+   overriding the translucent white/10 the Flux stubs ship for dark mode. */
+input[data-flux-control]:not([type='checkbox'], [type='radio'], [type='range'], [type='file']),
+textarea[data-flux-control],
+select[data-flux-control] {
+    background-color: var(--surface-2);
+    border-color: var(--border-strong);
 }
 
 input:focus[data-flux-control],
 textarea:focus[data-flux-control],
 select:focus[data-flux-control] {
-    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-surface-0;
 }
-
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
