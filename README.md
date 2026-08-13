@@ -251,6 +251,9 @@ cp .env.example .env && php artisan key:generate
 
 > Senza PHP sul host: `docker run --rm -v "$(pwd):/var/www/html" -w /var/www/html \
 > laravelsail/php84-composer:latest composer install --ignore-platform-reqs`
+> (l'immagine composer di Sail più recente è ferma a PHP 8.4:
+> `--ignore-platform-reqs` scavalca il requisito `^8.5` del progetto — i
+> container veri girano comunque su PHP 8.5, vedi Dockerfile)
 
 Poi i **due comandi**:
 
@@ -295,7 +298,7 @@ dentro Linux).
 
 ## 7. Setup senza Docker
 
-Requisiti: PHP ≥ 8.3 con sqlite, Composer, Node 20+, Python 3.12.
+Requisiti: PHP ≥ 8.5 con sqlite, Composer, Node 20+, Python 3.12.
 
 ```bash
 composer install
