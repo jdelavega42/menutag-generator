@@ -1,0 +1,120 @@
+# ---------------------------------------------------------------------------
+# MenuTag Generator — Sail-compatible compose (WS-6, spec §6)
+#
+# Services:
+#   - laravel.test  → the APP (kept at Sail's default service name so every
+#                     `./vendor/bin/sail ...` command works out of the box);
+#   - worker        → queue:work on the SAME image and the SAME project
+#                     bind mount as the app: the worker resolves the very
+#                     files (logos, STL) the app wrote — without the shared
+#                     volume the record hangs in `processing` and Python
+#                     dies with "file not found", which looks like an engine
+#                     bug but is Docker orchestration (spec §7.1);
+#   - scheduler     → schedule:work for the guest retention (24 h) and the
+#                     stuck-record recovery commands (routes/console.php);
+#   - mariadb       → persistent named volume `sail-mariadb`.
+#
+# The worker and scheduler reuse the image built by laravel.test (only one
+# service declares `build`), overriding SUPERVISOR_PHP_COMMAND — the Sail
+# entrypoint hands that command to supervisord, which also restarts it.
+# MENUTAG_ENGINE_PYTHON points at the venv baked into the image (see the
+# Dockerfile header for why it is NOT under the bind-mounted /var/www/html).
+# ---------------------------------------------------------------------------
+
+services:
+    laravel.test:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
+        image: menutag/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${APP_PORT:-80}:80'
+            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+        environment:
+            WWWUSER: '${WWWUSER:-1000}'
+            LARAVEL_SAIL: 1
+            XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
+            XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
+            MENUTAG_ENGINE_PYTHON: /opt/menutag-engine/venv/bin/python3
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            mariadb:
+                condition: service_healthy
+
+    worker:
+        image: menutag/app
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER:-1000}'
+            LARAVEL_SAIL: 1
+            # The job timeout is 120 s (config product.engine.job_timeout_s,
+            # always > the 60 s engine Process timeout, spec §7.4): the
+            # worker gives it headroom, and the DB queue must not re-deliver
+            # a job that is still legitimately running (retry_after > 120).
+            SUPERVISOR_PHP_COMMAND: '/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan queue:work --sleep=1 --tries=2 --timeout=150'
+            DB_QUEUE_RETRY_AFTER: 150
+            MENUTAG_ENGINE_PYTHON: /opt/menutag-engine/venv/bin/python3
+        volumes:
+            # SAME project mount as the app: shared storage/ (spec §7.1).
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            mariadb:
+                condition: service_healthy
+            laravel.test:
+                condition: service_started
+
+    scheduler:
+        image: menutag/app
+        restart: unless-stopped
+        environment:
+            WWWUSER: '${WWWUSER:-1000}'
+            LARAVEL_SAIL: 1
+            SUPERVISOR_PHP_COMMAND: '/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan schedule:work'
+            MENUTAG_ENGINE_PYTHON: /opt/menutag-engine/venv/bin/python3
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            mariadb:
+                condition: service_healthy
+            laravel.test:
+                condition: service_started
+
+    mariadb:
+        image: 'mariadb:11'
+        ports:
+            - '${FORWARD_DB_PORT:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        volumes:
+            - 'sail-mariadb:/var/lib/mysql'
+            - './vendor/laravel/sail/database/mariadb/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+        networks:
+            - sail
+        healthcheck:
+            test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+            retries: 3
+            timeout: 5s
+
+networks:
+    sail:
+        driver: bridge
+
+volumes:
+    sail-mariadb:
+        driver: local

@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: MenuTag Generator API
+  version: 1.0.0
+  description: >
+    API REST versionata per la generazione di targhette menù stampabili in 3D.
+    Autenticazione a token Laravel Sanctum (B2B). Il flusso ospite esiste solo
+    sull'interfaccia web, non su questa API. La generazione è asincrona:
+    POST /menu-tags risponde 202 e il client interroga lo stato.
+servers:
+  - url: /api/v1
+security:
+  - sanctum: []
+
+paths:
+  /menu-tags:
+    post:
+      summary: Accoda la generazione di una targhetta
+      operationId: createMenuTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMenuTagRequest'
+      responses:
+        '202':
+          description: Record creato, job accodato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MenuTag' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+    get:
+      summary: Elenca le targhette dell'utente autenticato
+      operationId: listMenuTags
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 15 } }
+        - { name: 'filter[status]', in: query, schema: { $ref: '#/components/schemas/Status' } }
+        - { name: 'filter[preset]', in: query, schema: { $ref: '#/components/schemas/Preset' } }
+      responses:
+        '200':
+          description: Elenco paginato (solo risorse proprie, via Policy)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/MenuTag' }
+                  links: { type: object }
+                  meta: { type: object }
+        # Annotazione WS-6 (implementazione): parametri di query fuori dai
+        # vincoli dichiarati (per_page oltre 100, filtri fuori enum) vengono
+        # rifiutati con il formato di errore di validazione standard.
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /menu-tags/{id}:
+    get:
+      summary: Stato e metadati di una targhetta
+      operationId: showMenuTag
+      parameters: [ { $ref: '#/components/parameters/menuTagId' } ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/MenuTag' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /menu-tags/{id}/download:
+    get:
+      summary: Scarica l'STL (solo status completed)
+      operationId: downloadMenuTag
+      parameters:
+        - { $ref: '#/components/parameters/menuTagId' }
+        - name: part
+          in: query
+          description: In modalità inlay l'accento è un secondo STL.
+          schema: { type: string, enum: [base, accent], default: base }
+      responses:
+        '200':
+          description: STL binario
+          content:
+            model/stl:
+              schema: { type: string, format: binary }
+        '409':
+          description: La generazione non è completata (o part=accent senza inlay)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        # Annotazione WS-6 (implementazione): un valore di part fuori
+        # dall'enum (né base né accent) è un errore di validazione, coerente
+        # con gli altri 422 dell'API.
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /menu-tags/{id}/guide:
+    get:
+      summary: Guida di stampa (Markdown) generata dai valori reali della configurazione
+      operationId: downloadGuide
+      parameters: [ { $ref: '#/components/parameters/menuTagId' } ]
+      responses:
+        '200':
+          description: Guida di stampa
+          content:
+            text/markdown:
+              schema: { type: string }
+        '409':
+          description: Disponibile solo a generazione completata
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+  /logos:
+    post:
+      summary: Carica un logo (PNG o SVG, max 2 MB, MIME verificato dal contenuto)
+      operationId: uploadLogo
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '201':
+          description: Logo salvato nella libreria dell'utente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/LogoAsset' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+
+components:
+  securitySchemes:
+    sanctum:
+      type: http
+      scheme: bearer
+      description: Token personale Laravel Sanctum
+
+  parameters:
+    menuTagId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    ValidationError:
+      description: Errore di validazione (formato standard Laravel)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items: { type: string }
+    RateLimited:
+      description: Limite di generazioni superato
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthenticated:
+      description: Token assente o non valido
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: La risorsa appartiene a un altro utente (Policy)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Risorsa inesistente
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+
+    Status:
+      type: string
+      enum: [queued, processing, completed, failed]
+
+    Preset:
+      type: string
+      enum: [menutag, coaster, coin_cart]
+
+    Printability:
+      type: string
+      enum: [ok, warn, blocked]
+
+    CreateMenuTagRequest:
+      type: object
+      description: >
+        Body del POST /menu-tags. preset e label sono colonne della risorsa
+        (contratto 01), i parametri geometrici viaggiano nell'oggetto
+        parameters che specchia il DTO. I vincoli dimensionali completi
+        (pavimenti QR dipendenti da forma e URL, budget di spessore, pareti
+        NFC) sono applicati in validazione e restituiti come 422 con messaggi
+        che indicano come rientrare nei limiti.
+      required: [preset, parameters]
+      properties:
+        preset: { $ref: '#/components/schemas/Preset' }
+        label: { type: [string, 'null'], maxLength: 255 }
+        parameters: { $ref: '#/components/schemas/MenuTagParameters' }
+
+    MenuTagParameters:
+      type: object
+      description: >
+        Specchia il DTO MenuTagParameters (contratto 02), mapping identità:
+        stessi nomi in snake_case, stesse unità (mm per le grandezze
+        dimensionali, gradi per logo_rotate), stessi default.
+      required: [shape, size]
+      properties:
+        shape: { type: string, enum: [circle, square] }
+        size:
+          type: number
+          minimum: 25.75
+          maximum: 200
+          description: mm — diametro (circle) o lato (square), nominale
+        fillet: { type: number, default: 0, description: "mm, solo square" }
+        thickness: { type: number, minimum: 2.2, maximum: 20, default: 4.0, description: mm }
+        base_profile: { type: string, enum: [flat, rimmed], default: flat }
+        rim_width: { type: number, default: 5.0, description: "mm, solo rimmed" }
+        recess_depth: { type: number, default: 1.2, description: "mm, solo rimmed" }
+        front: { type: string, enum: [none, logo, qr, qr_logo], default: none }
+        back: { type: string, enum: [none, logo, qr, qr_logo], default: none }
+        mode: { type: string, enum: [engrave, relief, inlay], default: engrave }
+        depth: { type: number, minimum: 0.2, maximum: 2.0, default: 0.8, description: mm }
+        margin:
+          type: [number, 'null']
+          default: null
+          description: mm; null = auto (calcolato dalla quiet zone)
+        logo_asset_id: { type: [integer, 'null'] }
+        logo_rotate: { type: number, default: 0, description: gradi }
+        qr_data_front: { type: [string, 'null'], format: uri }
+        qr_data_back:
+          type: [string, 'null']
+          format: uri
+          description: Il bifacciale bilingue (IT/EN) usa due URL distinti.
+        qr_ec: { type: string, enum: [L, M, Q, H], default: H }
+        nfc: { type: boolean, default: false }
+        tag_diameter: { type: integer, enum: [22, 25], default: 25, description: mm }
+        tag_thickness: { type: number, minimum: 0.3, maximum: 1.6, default: 0.8, description: mm }
+        nozzle: { type: string, enum: ['0.2', '0.4'], default: '0.4' }
+        layer_height:
+          type: [number, 'null']
+          default: null
+          description: mm; null = default del profilo stampante per l'ugello scelto
+        printer: { type: string, enum: [a1mini], default: a1mini }
+        material: { type: string, enum: [pla-matte, petg], default: pla-matte }
+        plate: { type: integer, minimum: 1, maximum: 100, default: 1 }
+        xy_comp: { type: number, minimum: -0.3, maximum: 0.3, default: 0, description: mm per lato }
+
+    MenuTag:
+      type: object
+      properties:
+        id: { type: integer }
+        label: { type: [string, 'null'] }
+        preset: { $ref: '#/components/schemas/Preset' }
+        customized: { type: boolean }
+        status: { $ref: '#/components/schemas/Status' }
+        parameters: { $ref: '#/components/schemas/MenuTagParameters' }
+        printability:
+          oneOf:
+            - $ref: '#/components/schemas/Printability'
+            - type: 'null'
+        report:
+          type: [object, 'null']
+          description: Chiavi stdout del motore (contratto 03 §4); presente da completed.
+        error_message: { type: [string, 'null'] }
+        links:
+          type: object
+          properties:
+            download: { type: [string, 'null'], format: uri }
+            download_accent: { type: [string, 'null'], format: uri }
+            guide: { type: [string, 'null'], format: uri }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    LogoAsset:
+      type: object
+      properties:
+        id: { type: integer }
+        original_name: { type: string }
+        mime: { type: string, enum: [image/png, image/svg+xml] }
+        size_bytes: { type: integer }
+        created_at: { type: string, format: date-time }
