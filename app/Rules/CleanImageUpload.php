@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Rules;
 
 use Closure;
+use DOMDocument;
+use DOMDocumentType;
+use DOMElement;
 use finfo;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Translation\PotentiallyTranslatedString;
 use InvalidArgumentException;
-use XMLReader;
 
 /**
  * Content-based validation for logo uploads (spec §6 WS-5): only real PNG or
@@ -22,9 +24,17 @@ use XMLReader;
  *   A PHP script renamed `.png` is detected as text and rejected.
  * - SVG: `finfo` is unreliable (it returns sometimes `image/svg+xml`,
  *   sometimes `text/xml` or even `text/plain`), so the authoritative check
- *   is XML parsing with root element `<svg>`. Documents carrying a DOCTYPE
- *   are rejected outright (XXE / entity-expansion hygiene; legitimate logo
- *   SVGs do not need a DTD) and the parser runs with LIBXML_NONET.
+ *   is XML parsing with root element `<svg>`, with the parser running under
+ *   LIBXML_NONET (no network fetch of any external DTD/entity, ever) and
+ *   without LIBXML_DTDLOAD/LIBXML_NOENT (no external DTD is ever loaded or
+ *   substituted, whatever its SYSTEM/PUBLIC identifier names). A DOCTYPE is
+ *   only rejected when it carries an INTERNAL SUBSET (the `<!DOCTYPE svg [
+ *   ... ]>` block): that is the only place a document can declare custom
+ *   entities, which is the actual XXE (entity resolving to a local file) and
+ *   entity-expansion ("billion laughs") vector — a bare PUBLIC/SYSTEM
+ *   reference with no internal subset (the legacy boilerplate many export
+ *   tools still emit, e.g. the SVG 1.0/1.1 DTDs) declares nothing and, given
+ *   the flags above, is never fetched: it is accepted.
  *
  * USAGE POINT for WS-4/WS-6 (server-side generated file names, spec §6):
  * after validation, never persist the client file name on disk — store with
@@ -114,36 +124,38 @@ final class CleanImageUpload implements ValidationRule
 
     /**
      * True when the file parses as XML with root element <svg>
-     * (namespace-agnostic local name), without any DOCTYPE declaration.
+     * (namespace-agnostic local name). A DOCTYPE with an internal subset
+     * (custom entity declarations — the XXE / entity-expansion vector) is
+     * rejected via `DOMDocumentType::$internalSubset`, libxml2's own account
+     * of what the document declared — not a textual approximation. A bare
+     * PUBLIC/SYSTEM reference (`internalSubset === null`) is harmless under
+     * the flags above and does not block the root-element check.
+     *
+     * `DOMDocument::load()` neither resolves external entities nor loads an
+     * external DTD subset unless `substituteEntities`/`resolveExternals` are
+     * explicitly enabled (they never are here), and fails closed — verified
+     * to return instantly, never hang — on a "billion laughs" nested-entity
+     * bomb: libxml2 itself detects the entity reference loop and aborts.
      */
     private static function isSvgContent(string $path): bool
     {
         $previous = libxml_use_internal_errors(true);
-        $reader = null;
 
         try {
-            $reader = XMLReader::open($path, null, LIBXML_NONET);
+            $document = new DOMDocument;
+            $loaded = @$document->load($path, LIBXML_NONET);
 
-            if (! $reader instanceof XMLReader) {
+            if (! $loaded) {
                 return false;
             }
 
-            while (@$reader->read()) {
-                if ($reader->nodeType === XMLReader::DOC_TYPE) {
-                    return false;
-                }
-
-                if ($reader->nodeType === XMLReader::ELEMENT) {
-                    return $reader->localName === 'svg';
-                }
+            if ($document->doctype instanceof DOMDocumentType && $document->doctype->internalSubset !== null) {
+                return false;
             }
 
-            return false;
+            return $document->documentElement instanceof DOMElement
+                && $document->documentElement->localName === 'svg';
         } finally {
-            if ($reader instanceof XMLReader) {
-                $reader->close();
-            }
-
             libxml_clear_errors();
             libxml_use_internal_errors($previous);
         }
