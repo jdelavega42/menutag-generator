@@ -2,6 +2,7 @@
 # engine virtualenv (spec §11: no credentials, client logos or generated
 # STL files in the repo).
 /engine/.venv
+/engine/**/__pycache__
 /storage/app/assets
 /storage/app/stl
 *.stl
