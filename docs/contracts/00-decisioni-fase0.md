@@ -138,6 +138,3 @@ Soglie: `warn` sopra il 2 % di area a rischio, `blocked` sopra il 10 % o
 - Export 3MF con profilo di stampa incorporato (§8.9).
 - Profili per stampanti oltre la A1 mini (la struttura `config/printers.php`
   è già pronta a riceverli).
-- Verifica di `sail up` e della generazione end-to-end nei container: la
-  macchina di sviluppo non ha Docker; Dockerfile/docker-compose auditati a
-  mano, da provare su un host con Docker.

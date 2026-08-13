@@ -121,6 +121,12 @@ COPY vendor/laravel/sail/runtimes/8.5/supervisord.conf /etc/supervisor/conf.d/su
 COPY vendor/laravel/sail/runtimes/8.5/php.ini /etc/php/8.5/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 
+# Deviation from the faithful Sail copy above: more start retries, so
+# worker/scheduler survive the window between container start and
+# `migrate:fresh` on a brand new database instead of giving up for good
+# (see docker/supervisord.conf for why).
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
 # ---------------------------------------------------------------------------
 # MenuTag geometry engine layer (spec §6 WS-6)
 #

@@ -260,10 +260,10 @@ Poi i **due comandi**:
 ```
 
 Su un database **vuoto**, `worker` e `scheduler` partono insieme agli altri
-servizi e possono interrogare tabelle che non esistono ancora: dopo la
-migrazione, se non risultano generazioni in coda, riavviali con
-`docker compose restart worker scheduler` (le esecuzioni successive, a
-schema già presente, non hanno questo problema).
+servizi e possono interrogare tabelle che non esistono ancora: `supervisord`
+(config in `docker/supervisord.conf`, `startretries=50` invece del default 3)
+li fa crash-riprovare finché `migrate:fresh` non crea lo schema, senza alcun
+intervento manuale — verificato con un avvio a freddo completo.
 
 Per l'interfaccia servono anche gli asset frontend
 (`./vendor/bin/sail npm install && ./vendor/bin/sail npm run build`), poi
@@ -508,14 +508,14 @@ Limiti e code note dei workstream, da rifinire:
 - **`sail up` verificato end-to-end** (build immagine, 4 servizi, generazione
   reale via worker con motore Python, volume storage condiviso, API HTTP):
   esito conforme al riferimento validato (`PAUSE_Z=2.0`, `PAUSE_LAYER=19`,
-  `PRINTABILITY=ok`). **Nota operativa**: `worker` e `scheduler` partono
-  insieme a `mariadb`/`laravel.test` e possono tentare una query prima che
-  `migrate:fresh` crei le tabelle — supervisord esaurisce i retry rapidi ed
-  entra in stato `FATAL` senza riprovare. Dopo il primo
-  `sail artisan migrate:fresh --seed` su un database vuoto, esegui
-  `docker compose restart worker scheduler` (o riavvia `sail up` una volta
-  migrato). Le esecuzioni successive, a schema già presente, non hanno
-  questo problema.
+  `PRINTABILITY=ok`). La prima verifica aveva scoperto una corsa d'avvio su
+  database vuoto (`worker`/`scheduler` partono insieme a
+  `mariadb`/`laravel.test` e possono interrogare tabelle inesistenti prima di
+  `migrate:fresh`, esaurendo i retry rapidi di `supervisord` e restando
+  `FATAL` per sempre): risolta alla radice in `docker/supervisord.conf`
+  (`startretries=50`), **non serve più alcun intervento manuale** — riverificato
+  con un avvio a freddo completo (`down -v` → `up -d` → `migrate:fresh --seed`
+  → generazione reale, senza toccare i container).
 
 ## Deviazioni e scelte dichiarate
 
