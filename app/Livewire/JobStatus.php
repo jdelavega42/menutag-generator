@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Enums\MenuTagStatus;
+use App\Enums\Preset;
 use App\Livewire\Concerns\BuildsDownloadUrls;
 use App\Models\MenuTag;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -31,12 +33,17 @@ class JobStatus extends Component
 
     public ?string $errorMessage = null;
 
+    /** Preset of the tracked record: picks the narrative voice (QR vs logo). */
+    #[Locked]
+    public ?string $preset = null;
+
     public function mount(?MenuTag $menuTag = null): void
     {
         if ($menuTag !== null) {
             $this->menuTagId = $menuTag->id;
             $this->status = $menuTag->status->value;
             $this->errorMessage = $menuTag->error_message;
+            $this->preset = $menuTag->preset->value;
         }
     }
 
@@ -46,6 +53,14 @@ class JobStatus extends Component
         $this->menuTagId = $menuTagId;
         $this->status = MenuTagStatus::Queued->value;
         $this->errorMessage = null;
+
+        $menuTag = MenuTag::find($menuTagId);
+
+        if ($menuTag !== null) {
+            // Same ownership gate the poll enforces, just one tick earlier.
+            Gate::authorize('view', $menuTag);
+            $this->preset = $menuTag->preset->value;
+        }
     }
 
     /** Poll tick (wire:poll.2500ms while the status is not terminal). */
@@ -101,10 +116,46 @@ class JobStatus extends Component
             && in_array($this->status, [MenuTagStatus::Queued->value, MenuTagStatus::Processing->value], true);
     }
 
+    /** Human label of the tracked format, for the narrative copy. */
+    public function presetLabel(): string
+    {
+        return match (Preset::tryFrom($this->preset ?? '')) {
+            Preset::Coaster => 'Coaster',
+            Preset::CoinCart => 'Coin Cart',
+            default => 'MenuTag',
+        };
+    }
+
+    /**
+     * Narrative waiting states (glossario.md / flussi.md §1), HOOKED to the
+     * real job states — never a fake progress bar: `queued` and `processing`
+     * are the only two non-terminal states the record can be in.
+     *
+     * @return array{title: string, detail: string}
+     */
+    public function narrative(): array
+    {
+        $engraving = Preset::tryFrom($this->preset ?? '') === Preset::MenuTag
+            ? 'Stiamo incidendo il tuo QR…'
+            : 'Stiamo incidendo il tuo logo…';
+
+        return $this->status === MenuTagStatus::Processing->value
+            ? [
+                'title' => $engraving,
+                'detail' => 'Subito dopo arriva la verifica di stampa: leggiamo la geometria reale prima di dartela.',
+            ]
+            : [
+                'title' => 'In coda…',
+                'detail' => 'Il banco di lavoro sta per iniziare. Puoi continuare a guardare l\'anteprima.',
+            ];
+    }
+
     public function render(): View
     {
         return view('livewire.job-status', [
             'polling' => $this->isPolling(),
+            'narrative' => $this->narrative(),
+            'presetLabel' => $this->presetLabel(),
         ]);
     }
 }

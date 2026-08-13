@@ -37,14 +37,18 @@ it('creates a queued record and dispatches the job for a guest', function (): vo
     Livewire::test(Configurator::class)
         ->set('qrDataFront', 'https://menu.example.it/demo')
         ->call('submit')
-        ->assertHasNoErrors();
+        ->assertHasNoErrors()
+        // Restyle R-2: a guest submit lands on wizard step 3 (crea e scarica).
+        ->assertSet('step', 3);
 
     $record = MenuTag::query()->latest('id')->first();
 
     expect($record)->not->toBeNull()
         ->status->toBe(MenuTagStatus::Queued)
         ->user_id->toBeNull()
-        ->guest_token->toBe($token);
+        ->guest_token->toBe($token)
+        // Guest records are never parametric (restyle §5.4).
+        ->customized->toBeFalse();
 
     Queue::assertPushed(
         GenerateMenuTagJob::class,

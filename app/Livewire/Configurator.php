@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -45,6 +46,35 @@ class Configurator extends Component
     use WithFileUploads;
 
     private const float EPS = 1e-9;
+
+    /**
+     * The ONLY properties a guest may update from the client: the essential
+     * input of the format (restyle brief §5.1) — the menu URL for QR presets
+     * and the logo upload for the logo-essential presets. Everything else is
+     * parametric customization and is rejected SERVER-SIDE (§5.4: the gate
+     * lives in the server, not in the CSS).
+     */
+    private const array GUEST_MUTABLE_PROPERTIES = ['qrDataFront', 'logoUpload'];
+
+    /** Presets whose essential input is the logo (restyle brief §5.1). */
+    private const array LOGO_ESSENTIAL_PRESETS = ['coaster', 'coin_cart'];
+
+    // ---- Guest wizard state (restyle, flussi.md §1) ---------------------
+
+    /** Re-derived from the auth state on every hydration — never client-set. */
+    #[Locked]
+    public bool $isGuest = false;
+
+    /** Guest wizard step (1 formato · 2 input essenziale · 3 crea e scarica). */
+    #[Locked]
+    public int $step = 1;
+
+    /**
+     * A guest followed a "duplica" link (flussi.md §4): duplication needs the
+     * archive, so the wizard shows the registration CTA — never an error.
+     */
+    #[Locked]
+    public bool $duplicateRequiresAccount = false;
 
     // ---- Preset / customization state ---------------------------------
 
@@ -154,6 +184,8 @@ class Configurator extends Component
 
     public function mount(): void
     {
+        $this->isGuest = Auth::guest();
+
         $duplicateId = request()->integer('duplica');
 
         if ($duplicateId > 0 && $this->fillFromExisting($duplicateId)) {
@@ -166,6 +198,38 @@ class Configurator extends Component
 
         if ($prefillQr !== '' && str_contains($this->front, 'qr')) {
             $this->qrDataFront = $prefillQr;
+        }
+    }
+
+    /**
+     * The guest flag follows the CURRENT auth state, not the snapshot: a
+     * session that logs in (or out) between requests is re-gated correctly.
+     */
+    public function hydrate(): void
+    {
+        $this->isGuest = Auth::guest();
+    }
+
+    /**
+     * SERVER-SIDE gate on every client-sent property update (restyle §5.4):
+     * guests may only touch the essential input of the format. Any parametric
+     * mutation — size, mode, faces, NFC, print settings… — is refused with a
+     * 403, whatever the client claims to render.
+     */
+    public function updating(string $name, mixed $value): void
+    {
+        if (! $this->isGuest) {
+            return;
+        }
+
+        $root = str_contains($name, '.') ? strstr($name, '.', true) : $name;
+
+        if (! in_array($root, self::GUEST_MUTABLE_PROPERTIES, true)) {
+            abort(403, 'La personalizzazione dei parametri è riservata agli utenti registrati: registrati per sbloccare lo Studio completo.');
+        }
+
+        if ($root === 'logoUpload' && ! in_array($this->preset, self::LOGO_ESSENTIAL_PRESETS, true)) {
+            abort(403, 'Il logo sul MenuTag è una personalizzazione: registrati per sbloccarla.');
         }
     }
 
@@ -184,15 +248,48 @@ class Configurator extends Component
         $this->dispatch('menutag-updated', params: $this->previewParams());
     }
 
-    /** "Personalizza questo formato" — the ONLY way into parametric mode. */
+    /**
+     * "Personalizza questo formato" — the ONLY way into parametric mode, and
+     * a registered-only capability (restyle §5.4): for guests the same spot
+     * shows the "Sblocca lo Studio completo" card instead, and any direct
+     * call is refused server-side.
+     */
     public function unlockCustomization(): void
     {
+        abort_if($this->isGuest, 403, 'La modalità personalizzata è riservata agli utenti registrati: registrati per sbloccare lo Studio completo.');
+
         $this->customized = true;
+    }
+
+    // ---- Guest wizard navigation (flussi.md §1) — never parametric ------
+
+    /** Step 1 → 2: the format is chosen, ask for its essential input. */
+    public function continueToInput(): void
+    {
+        if ($this->isGuest) {
+            $this->step = 2;
+        }
+    }
+
+    /** Step 2 → 1: back to the format cards. */
+    public function backToFormat(): void
+    {
+        if ($this->isGuest) {
+            $this->step = 1;
+        }
     }
 
     #[On('logo-uploaded')]
     public function onLogoUploaded(int $logoAssetId, string $previewUrl): void
     {
+        // Same gate as the upload property: for guests the logo is essential
+        // input on Coaster/Coin Cart and customization anywhere else (§5.1).
+        abort_if(
+            $this->isGuest && ! in_array($this->preset, self::LOGO_ESSENTIAL_PRESETS, true),
+            403,
+            'Il logo sul MenuTag è una personalizzazione: registrati per sbloccarla.',
+        );
+
         $this->logoAssetId = $logoAssetId;
         $this->logoPreviewUrl = $previewUrl;
         $this->dispatch('menutag-updated', params: $this->previewParams());
@@ -261,6 +358,13 @@ class Configurator extends Component
     public function submit(): void
     {
         $this->resetErrorBag();
+
+        if ($this->isGuest) {
+            // Belt and braces over the updating() gate: whatever reached the
+            // component, a guest record is ALWAYS preset + essential input.
+            $this->enforceGuestPresetParameters();
+        }
+
         $this->syncDynamicSizeFloor();
 
         if ($this->proposedSize !== null) {
@@ -332,6 +436,11 @@ class Configurator extends Component
 
         $this->dispatchGenerationJob($menuTag);
 
+        if ($this->isGuest) {
+            // Wizard step 3: crea e scarica (flussi.md §1).
+            $this->step = 3;
+        }
+
         // L+B (contract 04): JobStatus (#[On]) starts polling, the browser
         // listeners can react too.
         $this->dispatch('menutag-queued', menuTagId: $menuTag->id);
@@ -401,6 +510,15 @@ class Configurator extends Component
 
     private function fillFromExisting(int $menuTagId): bool
     {
+        if ($this->isGuest) {
+            // Duplication re-opens the parametric mode, which is registered
+            // only: the wizard shows the registration CTA — never an error,
+            // never a prefilled form (flussi.md §4, restyle §5.4).
+            $this->duplicateRequiresAccount = true;
+
+            return false;
+        }
+
         $menuTag = MenuTag::find($menuTagId);
 
         if ($menuTag === null) {
@@ -447,6 +565,40 @@ class Configurator extends Component
         }
 
         return true;
+    }
+
+    /**
+     * Hard server-side reset for guest submissions (restyle §5.4): every
+     * parameter is pinned back to the preset value, keeping only the
+     * essential input — the typed menu URL, and the uploaded logo on the
+     * logo-essential presets. The dynamic QR size floor then re-raises the
+     * size on the (preserved) URL as usual.
+     */
+    private function enforceGuestPresetParameters(): void
+    {
+        $preset = $this->presetEnum() ?? Preset::MenuTag;
+        $essentialUrl = $this->qrDataFront;
+
+        foreach (self::presetDefaults($preset) as $property => $value) {
+            $this->{$property} = $value;
+        }
+
+        if (str_contains($this->front, 'qr')) {
+            // Keep what the guest typed — an emptied URL must fail V4 loudly,
+            // not fall back to the demo payload.
+            $this->qrDataFront = $essentialUrl;
+        }
+
+        if (! in_array($preset->value, self::LOGO_ESSENTIAL_PRESETS, true)) {
+            $this->logoAssetId = null;
+            $this->logoPreviewUrl = null;
+        }
+
+        $this->customized = false;
+        $this->sizeTouched = false;
+        $this->depthTouched = false;
+        $this->proposedSize = null;
+        $this->proposedSizeReason = null;
     }
 
     /**

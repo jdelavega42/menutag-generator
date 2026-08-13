@@ -84,6 +84,59 @@ class PrintabilityReport extends Component
     }
 
     /**
+     * Semaforo copy of the «Verifica di stampa» (glossario.md): a human title
+     * and one plain sentence per outcome. The numbers stay available as a
+     * secondary detail in the closed «Dettagli tecnici» block.
+     *
+     * @return array{tone: string, title: string, phrase: string}
+     */
+    public function outcome(): array
+    {
+        $qrChecked = $this->value('QR_DECODED') !== null;
+
+        return match ($this->printability()) {
+            'ok' => [
+                'tone' => 'ok',
+                'title' => 'Verificato: pronto per la stampa',
+                'phrase' => $qrChecked
+                    ? 'Il QR è stato letto dalla geometria reale: si scansiona.'
+                    : 'La grafica è stata verificata sulla geometria reale: si stampa.',
+            ],
+            'warn' => [
+                'tone' => 'warn',
+                'title' => 'Stampabile, con un\'attenzione',
+                'phrase' => 'Il file si stampa, ma leggi le attenzioni qui sotto prima di avviare.',
+            ],
+            'blocked' => [
+                'tone' => 'blocked',
+                'title' => 'Sconsigliato così',
+                'phrase' => 'Puoi comunque scaricare il file, ma ti spieghiamo cosa rischia.',
+            ],
+            default => [
+                'tone' => 'muted',
+                'title' => 'Esito non disponibile',
+                'phrase' => 'La verifica di stampa non ha prodotto un esito per questo modello.',
+            ],
+        };
+    }
+
+    /**
+     * Engine warnings, rewritten in the glossary voice (glossario.md): the
+     * technical phrasing survives verbatim inside «Dettagli tecnici», the
+     * primary line speaks human. Unknown warnings pass through unchanged.
+     */
+    public function humanizeWarning(string $warning): string
+    {
+        return match (true) {
+            str_contains($warning, 'Dopo il primo perimetro') => 'Dettagli molto fini: stampa con almeno 2 contorni e non attivare la modalità a parete singola.',
+            str_contains($warning, 'Apertura morfologica sul pieno') => 'Alcuni tratti della grafica sono più sottili di quanto l\'ugello possa disegnare: rischiano di sparire in stampa.',
+            str_contains($warning, 'Apertura morfologica sul complemento') => 'Alcuni spazi vuoti della grafica sono molto stretti: rischiano di chiudersi in stampa.',
+            str_contains($warning, 'decodifica del QR') => 'Il QR riletto dalla geometria non si scansiona: accorcia l\'indirizzo o scegli una dimensione maggiore.',
+            default => $warning,
+        };
+    }
+
+    /**
      * @return list<string>
      */
     public function warnings(): array
