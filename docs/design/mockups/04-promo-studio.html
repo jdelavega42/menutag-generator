@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>MenuTag Studio — Lo Studio completo (mockup 04, pagina promo /studio)</title>
+<!--
+  Mockup statico Fase 0 — restyle "Cyber-Maker Studio".
+  Pagina promo /studio (flussi.md §3): benefici veri, zero contatori inventati.
+  Self-contained: nessuna risorsa esterna, nessun JS.
+  Ogni colore/raggio/durata passa dai token del blocco canonico (tokens.md §8).
+-->
+<style>
+/* ================================================================
+   BLOCCO CSS CANONICO — docs/design/tokens.md §8 (embed VERBATIM)
+   ================================================================ */
+:root {
+  --surface-0:#0B0F14; --surface-1:#11161D; --surface-2:#171E27; --surface-3:#1E2631;
+  --border-subtle:#232C38; --border-strong:#33404F;
+  --text-primary:#E8EDF2; --text-secondary:#A7B2BE; --text-muted:#7B8A99;
+  --accent:#FF7A1A; --accent-ink:#161006; --tech:#2FD4E6;
+  --ok:#4ADE80; --warn:#FBBF24; --blocked:#F98080;
+  --ok-surface:#122117; --warn-surface:#231D0E; --blocked-surface:#231314;
+  --grid-line:rgba(47,212,230,.06);
+  --font-sans:'Instrument Sans', ui-sans-serif, system-ui;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --r-control:6px; --r-card:10px; --r-panel:12px;
+  --t-micro:140ms; --t-panel:200ms; --ease:cubic-bezier(.2,0,0,1);
+}
+body { background:var(--surface-0); color:var(--text-primary);
+       font-family:var(--font-sans); font-size:14px; line-height:1.55; }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+        color:var(--tech); }
+.blueprint { background-image:
+  linear-gradient(var(--grid-line) 1px, transparent 1px),
+  linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:24px 24px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration:0ms !important; animation:none !important; }
+}
+/* ================================================================
+   ESTENSIONE DOCUMENTATA — tokens.md §6: raggio badge 999px
+   (non presente nel blocco canonico: trascritto qui come token)
+   ================================================================ */
+:root { --r-badge:999px; }
+
+/* ================================================================
+   STILI DEL MOCKUP — solo var(--token); zero hex fuori dal canone
+   ================================================================ */
+* { box-sizing:border-box; margin:0; padding:0; }
+a { text-decoration:none; color:inherit; }
+a:focus-visible, button:focus-visible {
+  outline:2px solid var(--border-strong); outline-offset:2px;
+  border-radius:var(--r-control);
+}
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+
+/* ---------- Nav comune ---------- */
+.nav {
+  border-bottom:1px solid var(--border-subtle);
+  background:var(--surface-1);
+}
+.nav-inner { display:flex; align-items:center; gap:28px; height:64px; }
+.brand { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:600; }
+.brand svg { display:block; }
+.nav-link {
+  color:var(--text-secondary); font-size:14px; font-weight:500;
+  padding:6px 10px; border-radius:var(--r-control);
+  transition:color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
+}
+.nav-link:hover { color:var(--text-primary); background:var(--surface-2); }
+.nav-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+
+/* ---------- Bottoni ---------- */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--font-sans); font-size:14px; font-weight:600;
+  border-radius:var(--r-control); padding:10px 20px; cursor:pointer;
+  border:1px solid transparent;
+  transition:background var(--t-micro) var(--ease),
+             border-color var(--t-micro) var(--ease),
+             filter var(--t-micro) var(--ease);
+}
+.btn-primary { background:var(--accent); color:var(--accent-ink); }
+.btn-primary:hover { filter:brightness(1.08); }
+.btn-ghost {
+  background:transparent; color:var(--text-primary);
+  border-color:var(--border-strong);
+}
+.btn-ghost:hover { background:var(--surface-2); }
+.btn-sm { padding:7px 14px; font-size:13px; }
+
+/* ---------- Hero ---------- */
+.hero { padding:48px 0 40px; }
+.hero-grid {
+  display:grid; grid-template-columns:460px 1fr; gap:48px; align-items:center;
+}
+.route-eyebrow { font-size:12px; letter-spacing:.08em; margin-bottom:14px; }
+h1 { font-size:36px; font-weight:600; line-height:1.15; margin-bottom:14px; }
+.hero-sub { font-size:16px; color:var(--text-secondary); margin-bottom:26px; max-width:44ch; }
+.hero-cta { display:flex; gap:12px; }
+
+/* ---------- Cornice blueprint (il "viewer" di questa pagina: ≥50% larghezza utile) ---------- */
+.blueprint-frame {
+  position:relative;
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-panel);
+  padding:30px;
+  /* fondale = surface-0 del body (transparent): la griglia sta solo qui, mai sotto il testo */
+}
+.tick { position:absolute; width:14px; height:14px; opacity:.4; border:0 solid var(--tech); }
+.tick.tl { top:10px;  left:10px;  border-top-width:1px; border-left-width:1px; }
+.tick.tr { top:10px;  right:10px; border-top-width:1px; border-right-width:1px; }
+.tick.bl { bottom:10px; left:10px;  border-bottom-width:1px; border-left-width:1px; }
+.tick.br { bottom:10px; right:10px; border-bottom-width:1px; border-right-width:1px; }
+.frame-caption {
+  margin-top:10px; font-size:12px; color:var(--text-muted); text-align:center;
+}
+
+/* ---------- Mock stilizzato della dashboard (righe astratte, non uno screenshot) ---------- */
+.dash {
+  background:var(--surface-1);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-card);
+  overflow:hidden;
+}
+.dash-header {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-bottom:1px solid var(--border-subtle);
+}
+.dash-title { font-size:13px; font-weight:600; }
+.dash-header .spacer { flex:1; }
+.dash-avatar {
+  width:26px; height:26px; border-radius:var(--r-badge);
+  background:var(--surface-3); border:1px solid var(--border-subtle);
+}
+.dash-toolbar {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-bottom:1px solid var(--border-subtle);
+}
+.dash-search {
+  display:flex; align-items:center; gap:8px;
+  width:230px; height:30px; padding:0 10px;
+  background:var(--surface-2); border:1px solid var(--border-strong);
+  border-radius:var(--r-control);
+}
+.dot { width:8px; height:8px; border-radius:var(--r-badge); background:var(--text-muted); }
+.chip-skel {
+  height:30px; border-radius:var(--r-control);
+  background:var(--surface-2); border:1px solid var(--border-subtle);
+}
+.dash-thead, .dash-row {
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) 92px 88px 122px 64px;
+  gap:12px; align-items:center; padding:0 16px;
+}
+.dash-thead {
+  height:32px; font-size:11px; font-weight:500; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--text-muted);
+  border-bottom:1px solid var(--border-subtle);
+}
+.dash-row {
+  height:46px; border-bottom:1px solid var(--border-subtle);
+  transition:background var(--t-micro) var(--ease);
+}
+.dash-row:last-child { border-bottom:0; }
+.dash-row:hover, .dash-row.attiva { background:var(--surface-3); }
+.skel {
+  height:8px; border-radius:var(--r-badge); background:var(--surface-3);
+}
+.dash-row.attiva .skel, .dash-row:hover .skel { background:var(--border-strong); }
+.cell-formato { font-size:13px; color:var(--text-secondary); }
+.cell-misura { font-size:13px; text-align:right; }
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:12px; font-weight:500; padding:3px 10px;
+  border-radius:var(--r-badge);
+}
+.badge-ok { color:var(--ok); background:var(--ok-surface); }
+.badge-neutro {
+  color:var(--text-secondary); background:var(--surface-2);
+  border:1px solid var(--border-subtle);
+}
+.badge-dot { width:6px; height:6px; border-radius:var(--r-badge); background:currentColor; }
+.row-actions { display:flex; gap:6px; justify-content:flex-end; }
+.icon-btn {
+  width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center;
+  border:0; background:transparent; color:var(--text-muted); cursor:pointer;
+  border-radius:var(--r-control);
+  transition:color var(--t-micro) var(--ease), background var(--t-micro) var(--ease);
+}
+.icon-btn:hover { color:var(--text-primary); background:var(--surface-2); }
+
+/* ---------- Card beneficio ---------- */
+.benefits { padding:40px 0 8px; }
+.benefits h2 { font-size:22px; font-weight:600; margin-bottom:20px; }
+.benefit-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.benefit {
+  background:var(--surface-2); border:1px solid var(--border-subtle);
+  border-radius:var(--r-card); padding:20px;
+  transition:border-color var(--t-micro) var(--ease);
+}
+.benefit:hover { border-color:var(--border-strong); }
+.benefit-icon {
+  width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+  background:var(--surface-3); border-radius:var(--r-control);
+  color:var(--text-secondary); margin-bottom:14px;
+}
+.benefit h3 { font-size:16px; font-weight:600; margin-bottom:6px; }
+.benefit p { font-size:13px; color:var(--text-secondary); }
+
+/* ---------- Banda CTA finale ---------- */
+.cta-band-wrap { padding:40px 0 48px; }
+.cta-band {
+  background:var(--surface-1); border:1px solid var(--border-subtle);
+  border-radius:var(--r-panel); padding:44px 40px; text-align:center;
+}
+.cta-band h2 { font-size:22px; font-weight:600; margin-bottom:8px; }
+.cta-band .lead { font-size:14px; color:var(--text-secondary); margin-bottom:24px; }
+.cta-band .hero-cta { justify-content:center; margin-bottom:18px; }
+.migrazione { font-size:13px; color:var(--text-secondary); }
+
+/* ---------- Footer ---------- */
+.footer {
+  border-top:1px solid var(--border-subtle);
+  padding:18px 0 28px; font-size:12px; color:var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- Simbolo riusabile: targhetta con QR stilizzato, due colori — base chiara
+     (var(--text-primary)) e incisione (var(--surface-0)), eco dell'intarsio
+     bicolore del prodotto fisico. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="qr-tag" viewBox="0 0 48 48">
+    <rect x="1" y="1" width="46" height="46" style="rx:var(--r-card)" fill="var(--text-primary)"/>
+    <g fill="var(--surface-0)">
+      <!-- finder pattern (3 angoli) -->
+      <rect x="8"  y="8"  width="12" height="12"/>
+      <rect x="28" y="8"  width="12" height="12"/>
+      <rect x="8"  y="28" width="12" height="12"/>
+    </g>
+    <g fill="var(--text-primary)">
+      <rect x="10" y="10" width="8" height="8"/>
+      <rect x="30" y="10" width="8" height="8"/>
+      <rect x="10" y="30" width="8" height="8"/>
+    </g>
+    <g fill="var(--surface-0)">
+      <rect x="12" y="12" width="4" height="4"/>
+      <rect x="32" y="12" width="4" height="4"/>
+      <rect x="12" y="32" width="4" height="4"/>
+      <!-- moduli dati -->
+      <rect x="24" y="8"  width="4" height="4"/>
+      <rect x="24" y="16" width="4" height="4"/>
+      <rect x="8"  y="24" width="4" height="4"/>
+      <rect x="16" y="24" width="4" height="4"/>
+      <rect x="24" y="24" width="4" height="4"/>
+      <rect x="32" y="24" width="4" height="4"/>
+      <rect x="24" y="28" width="4" height="4"/>
+      <rect x="32" y="28" width="4" height="4"/>
+      <rect x="28" y="32" width="4" height="4"/>
+      <rect x="36" y="32" width="4" height="4"/>
+      <rect x="24" y="36" width="4" height="4"/>
+      <rect x="32" y="36" width="4" height="4"/>
+    </g>
+  </symbol>
+</svg>
+
+<!-- ============ NAV COMUNE ============ -->
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#">
+      <svg width="22" height="22" aria-hidden="true"><use href="#qr-tag"/></svg>
+      MenuTag Studio
+    </a>
+    <nav aria-label="Principale">
+      <a class="nav-link" href="#">Configuratore</a>
+    </nav>
+    <div class="nav-right">
+      <a class="btn btn-ghost btn-sm" href="#">Accedi</a>
+      <a class="btn btn-primary btn-sm" href="#">Registrati</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ HERO: titolo + cornice blueprint (≥50% larghezza, above-the-fold) ============ -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="route-eyebrow"><span class="mono">/studio</span></div>
+        <h1>Lo Studio completo</h1>
+        <p class="hero-sub">
+          Lo stesso generatore, la stessa verifica di stampa. In più, tutto
+          quello che serve a chi produce davvero: un archivio che ricorda i
+          tuoi modelli, loghi e QR pronti al riuso, ogni parametro sotto
+          controllo.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#">Crea un account</a>
+          <a class="btn btn-ghost" href="#">Accedi</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="blueprint-frame blueprint">
+          <span class="tick tl" aria-hidden="true"></span>
+          <span class="tick tr" aria-hidden="true"></span>
+          <span class="tick bl" aria-hidden="true"></span>
+          <span class="tick br" aria-hidden="true"></span>
+
+          <!-- Mock stilizzato della dashboard: righe astratte, non uno screenshot -->
+          <div class="dash" role="img" aria-label="Schema illustrativo della dashboard dello Studio: archivio dei modelli con formato, misura e stato">
+            <div class="dash-header">
+              <svg width="18" height="18" aria-hidden="true"><use href="#qr-tag"/></svg>
+              <span class="dash-title">Il tuo archivio</span>
+              <span class="spacer"></span>
+              <span class="btn btn-primary btn-sm">Nuovo modello</span>
+              <span class="dash-avatar"></span>
+            </div>
+            <div class="dash-toolbar">
+              <span class="dash-search"><span class="dot"></span><span class="skel" style="width:110px"></span></span>
+              <span class="chip-skel" style="width:84px"></span>
+              <span class="chip-skel" style="width:64px"></span>
+            </div>
+            <div class="dash-thead">
+              <span></span><span>Modello</span><span>Formato</span>
+              <span style="text-align:right">Misura</span><span>Stato</span><span></span>
+            </div>
+
+            <div class="dash-row attiva">
+              <svg width="28" height="28" aria-hidden="true"><use href="#qr-tag"/></svg>
+              <span class="skel" style="width:132px"></span>
+              <span class="cell-formato">MenuTag</span>
+              <span class="cell-misura"><span class="mono">58.8&nbsp;mm</span></span>
+              <span><span class="badge badge-ok"><span class="badge-dot"></span>Pronto</span></span>
+              <span class="row-actions">
+                <button class="icon-btn" type="button" aria-label="Duplica il modello">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M9 9h11v11H9z"/><path d="M4 15V4h11"/>
+                  </svg>
+                </button>
+                <button class="icon-btn" type="button" aria-label="Scarica il file di stampa">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M4 18h16"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+
+            <div class="dash-row">
+              <svg width="28" height="28" aria-hidden="true"><use href="#qr-tag"/></svg>
+              <span class="skel" style="width:96px"></span>
+              <span class="cell-formato">Coaster</span>
+              <span class="cell-misura"><span class="mono">85&nbsp;mm</span></span>
+              <span><span class="badge badge-ok"><span class="badge-dot"></span>Pronto</span></span>
+              <span class="row-actions">
+                <button class="icon-btn" type="button" aria-label="Duplica il modello">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M9 9h11v11H9z"/><path d="M4 15V4h11"/>
+                  </svg>
+                </button>
+                <button class="icon-btn" type="button" aria-label="Scarica il file di stampa">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M4 18h16"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+
+            <div class="dash-row">
+              <svg width="28" height="28" aria-hidden="true"><use href="#qr-tag"/></svg>
+              <span class="skel" style="width:148px"></span>
+              <span class="cell-formato">Coin Cart</span>
+              <span class="cell-misura"><span class="mono">&Oslash;25.75&nbsp;mm</span></span>
+              <span><span class="badge badge-neutro"><span class="badge-dot"></span>In lavorazione</span></span>
+              <span class="row-actions">
+                <button class="icon-btn" type="button" aria-label="Duplica il modello">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M9 9h11v11H9z"/><path d="M4 15V4h11"/>
+                  </svg>
+                </button>
+                <button class="icon-btn" type="button" aria-label="Scarica il file di stampa">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M4 18h16"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+
+            <div class="dash-row">
+              <svg width="28" height="28" aria-hidden="true"><use href="#qr-tag"/></svg>
+              <span class="skel" style="width:112px"></span>
+              <span class="cell-formato">MenuTag</span>
+              <span class="cell-misura"><span class="mono">58.8&nbsp;mm</span></span>
+              <span><span class="badge badge-ok"><span class="badge-dot"></span>Pronto</span></span>
+              <span class="row-actions">
+                <button class="icon-btn" type="button" aria-label="Duplica il modello">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M9 9h11v11H9z"/><path d="M4 15V4h11"/>
+                  </svg>
+                </button>
+                <button class="icon-btn" type="button" aria-label="Scarica il file di stampa">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M4 18h16"/>
+                  </svg>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+        <p class="frame-caption">La dashboard dello Studio &mdash; schema illustrativo, non uno screenshot.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4 CARD BENEFICIO (flussi.md §3: benefici veri) ============ -->
+  <section class="benefits">
+    <div class="container">
+      <h2>Cosa sblocca l&rsquo;account</h2>
+      <div class="benefit-grid">
+
+        <article class="benefit">
+          <div class="benefit-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+              <path d="M3 5h18v4H3z"/><path d="M5 9v10h14V9"/><path d="M10 13h4"/>
+            </svg>
+          </div>
+          <h3>Archivio dei modelli</h3>
+          <p>Ogni modello che generi resta salvato: riaprilo, controlla la
+             verifica di stampa, riscarica il file di stampa (STL) quando
+             ti serve.</p>
+        </article>
+
+        <article class="benefit">
+          <div class="benefit-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+              <path d="M9 9h12v12H9z"/><path d="M6 15V6h9"/><path d="M3 12V3h9"/>
+            </svg>
+          </div>
+          <h3>Duplica in serie</h3>
+          <p>Produci per pi&ugrave; clienti? Parti da un modello esistente,
+             cambia l&rsquo;indirizzo o il logo e genera la variante in pochi
+             passaggi.</p>
+        </article>
+
+        <article class="benefit">
+          <div class="benefit-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="6.5" height="6.5"/>
+              <rect x="14" y="3.5" width="6.5" height="6.5"/>
+              <rect x="3.5" y="14" width="6.5" height="6.5"/>
+              <g fill="currentColor" stroke="none">
+                <rect x="14" y="14" width="2.6" height="2.6"/>
+                <rect x="17.9" y="14" width="2.6" height="2.6"/>
+                <rect x="14" y="17.9" width="2.6" height="2.6"/>
+                <rect x="17.9" y="17.9" width="2.6" height="2.6"/>
+              </g>
+            </svg>
+          </div>
+          <h3>Loghi e QR salvati</h3>
+          <p>La tua libreria di loghi e i QR che usi pi&ugrave; spesso, pronti
+             da riusare su ogni nuovo modello senza ricaricarli.</p>
+        </article>
+
+        <article class="benefit">
+          <div class="benefit-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+              <path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>
+              <g fill="currentColor" stroke="none">
+                <circle cx="15" cy="6" r="2.4"/>
+                <circle cx="8" cy="12" r="2.4"/>
+                <circle cx="17" cy="18" r="2.4"/>
+              </g>
+            </svg>
+          </div>
+          <h3>Personalizzazione completa</h3>
+          <p>Dimensioni, fronte e retro, resa e tag NFC &mdash; pi&ugrave; le
+             impostazioni di stampa avanzate, per chi stampa in proprio o
+             per il service.</p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA DOPPIA + RIGA FINALE ============ -->
+  <section class="cta-band-wrap">
+    <div class="container">
+      <div class="cta-band">
+        <h2>Porta i tuoi modelli nello Studio</h2>
+        <p class="lead">Crea l&rsquo;account e ritrova qui quello che hai gi&agrave; generato.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#">Crea un account</a>
+          <a class="btn btn-ghost" href="#">Accedi</a>
+        </div>
+        <p class="migrazione">I modelli creati da visitatore ti seguiranno dopo la registrazione.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    MenuTag Studio &mdash; mockup statico, Fase 0 del restyle &middot; nessun dato reale.
+  </div>
+</footer>
+
+</body>
+</html>

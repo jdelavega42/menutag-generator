@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MenuTag Studio — Home ospite (mockup Fase 0)</title>
+
+<!-- ============================================================
+     BLOCCO CSS CANONICO — copiato VERBATIM da docs/design/tokens.md §8.
+     Nessun colore/raggio/durata può vivere fuori da questi token.
+     ============================================================ -->
+<style>
+:root {
+  --surface-0:#0B0F14; --surface-1:#11161D; --surface-2:#171E27; --surface-3:#1E2631;
+  --border-subtle:#232C38; --border-strong:#33404F;
+  --text-primary:#E8EDF2; --text-secondary:#A7B2BE; --text-muted:#7B8A99;
+  --accent:#FF7A1A; --accent-ink:#161006; --tech:#2FD4E6;
+  --ok:#4ADE80; --warn:#FBBF24; --blocked:#F98080;
+  --ok-surface:#122117; --warn-surface:#231D0E; --blocked-surface:#231314;
+  --grid-line:rgba(47,212,230,.06);
+  --font-sans:'Instrument Sans', ui-sans-serif, system-ui;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --r-control:6px; --r-card:10px; --r-panel:12px;
+  --t-micro:140ms; --t-panel:200ms; --ease:cubic-bezier(.2,0,0,1);
+}
+body { background:var(--surface-0); color:var(--text-primary);
+       font-family:var(--font-sans); font-size:14px; line-height:1.55; }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+        color:var(--tech); }
+.blueprint { background-image:
+  linear-gradient(var(--grid-line) 1px, transparent 1px),
+  linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:24px 24px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration:0ms !important; animation:none !important; }
+}
+</style>
+
+<!-- Stili del mockup: SOLO var(--token) del blocco canonico.
+     Eccezioni ammesse e usate: 'transparent', 'currentColor'. -->
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+button { font:inherit; color:inherit; background:transparent; border:0; cursor:pointer; }
+a { color:var(--tech); text-decoration:none; }              /* link testuali = --tech (tokens §2) */
+a:hover { text-decoration:underline; }
+:focus-visible { outline:2px solid var(--border-strong);    /* focus ring di base (tokens §1) */
+                 outline-offset:2px; border-radius:var(--r-control); }
+.container { max-width:1280px; margin:0 auto; padding:0 32px; }
+
+/* ---------- Nav comune ---------- */
+.nav { background:var(--surface-1); border-bottom:1px solid var(--border-subtle); }
+.nav-inner { display:flex; align-items:center; gap:28px; height:60px; }
+.brand { display:flex; align-items:center; gap:10px; font-size:1rem; font-weight:600;
+         color:var(--text-primary); letter-spacing:.01em; }
+.brand svg { display:block; }
+.nav-link { font-size:.875rem; font-weight:500; color:var(--text-secondary); padding:6px 2px;
+            border-bottom:2px solid transparent; transition:color var(--t-micro) var(--ease); }
+.nav-link:hover { color:var(--text-primary); text-decoration:none; }
+.nav-link.is-active { color:var(--text-primary); border-bottom-color:var(--accent); } /* stato attivo = accent */
+.nav-auth { margin-left:auto; display:flex; align-items:center; gap:16px; }
+.btn-accent { display:inline-block; background:var(--accent); color:var(--accent-ink);
+              font-weight:600; font-size:.875rem; padding:8px 16px; border-radius:var(--r-control);
+              transition:opacity var(--t-micro) var(--ease); }
+.btn-accent:hover { opacity:.9; text-decoration:none; }
+
+/* ---------- Hero compatto ---------- */
+.hero { padding:22px 0 14px; }
+.hero h1 { font-size:1.75rem; font-weight:600; line-height:1.2; letter-spacing:-.01em; }
+.hero p { margin-top:6px; font-size:.9375rem; color:var(--text-secondary); max-width:62ch; }
+
+/* ---------- Indicatore passi 1·2·3 ---------- */
+.steps { display:flex; align-items:center; gap:12px; padding:12px 0 16px;
+         list-style:none; font-size:.8125rem; }
+.steps li { display:flex; align-items:center; gap:8px; color:var(--text-muted); font-weight:500; }
+.step-n { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
+          border-radius:999px; font-size:.75rem; font-weight:600;
+          background:var(--surface-2); border:1px solid var(--border-subtle); color:var(--text-secondary); }
+.steps li.is-current { color:var(--text-primary); }
+.steps li.is-current .step-n { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+.step-sep { width:36px; height:1px; background:var(--border-subtle); }
+
+/* ---------- Griglia principale: wizard a sinistra, viewer protagonista (≥50%) ---------- */
+.stage-grid { display:grid; grid-template-columns:47fr 53fr; gap:24px; align-items:start; padding-bottom:40px; }
+
+/* ---------- Card preset ---------- */
+.presets { display:flex; flex-direction:column; gap:12px; }
+.preset { display:flex; gap:14px; width:100%; text-align:left; align-items:flex-start;
+          background:var(--surface-2); border:1px solid var(--border-subtle);
+          border-radius:var(--r-card); padding:14px;
+          transition:background var(--t-micro) var(--ease), border-color var(--t-micro) var(--ease); }
+.preset:hover { background:var(--surface-3); }
+.preset.is-selected { border-color:var(--accent); }          /* selezione card = bordo --accent (tokens §2) */
+.preset-thumb { flex:none; width:64px; height:64px; border-radius:var(--r-control);
+                background:var(--surface-1); border:1px solid var(--border-subtle);
+                display:flex; align-items:center; justify-content:center; }
+.preset-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.preset-head h3 { font-size:1rem; font-weight:600; }
+.badge { font-size:.6875rem; font-weight:500; padding:1px 8px; border-radius:999px;
+         background:var(--surface-3); border:1px solid var(--border-strong); color:var(--text-secondary); }
+.flag-selected { display:none; font-size:.6875rem; font-weight:600; color:var(--accent); letter-spacing:.02em; }
+.preset.is-selected .flag-selected { display:inline; }
+.preset ul { list-style:none; margin-top:5px; }
+.preset li { position:relative; padding-left:14px; font-size:.8125rem; color:var(--text-secondary); }
+.preset li::before { content:""; position:absolute; left:0; top:.58em; width:5px; height:5px;
+                     border-radius:1px; background:var(--text-muted); }
+.preset-meta { margin-top:6px; font-size:.75rem; color:var(--text-muted); }
+
+/* ---------- Card "Sblocca lo Studio completo" ---------- */
+.unlock { margin-top:16px; background:var(--surface-1); border:1px dashed var(--border-strong);
+          border-radius:var(--r-card); padding:16px; }
+.unlock h2 { font-size:1rem; font-weight:600; }
+.unlock ul { list-style:none; margin:8px 0 10px; }
+.unlock li { position:relative; padding-left:14px; font-size:.8125rem; color:var(--text-secondary); }
+.unlock li::before { content:""; position:absolute; left:0; top:.58em; width:5px; height:5px;
+                     border-radius:1px; background:var(--text-muted); }
+.unlock a { font-size:.875rem; font-weight:500; }
+
+/* ---------- Viewer blueprint (placeholder del canvas 3D) ---------- */
+.viewer { height:480px; display:flex; flex-direction:column; overflow:hidden;
+          background:var(--surface-1); border:1px solid var(--border-subtle);
+          border-radius:var(--r-panel); }
+.viewer-stage { position:relative; flex:1; background-color:var(--surface-1); }
+.viewer-stage svg.scene { position:absolute; inset:0; width:100%; height:100%; }
+.chip { position:absolute; top:14px; display:inline-flex; align-items:center; gap:6px;
+        font-size:.75rem; font-weight:500; color:var(--text-secondary);
+        background:var(--surface-2); border:1px solid var(--border-subtle);
+        border-radius:999px; padding:4px 12px; }             /* fondo opaco: la griglia mai sotto il testo */
+.chip-title { left:14px; color:var(--text-primary); }
+.chip-note { right:14px; }
+.chip-dot { width:6px; height:6px; border-radius:999px; background:var(--accent); } /* progresso/azione in corso */
+.dim-label { position:absolute; bottom:26px; left:50%; transform:translateX(-50%);
+             font-size:.8125rem; background:var(--surface-1); border:1px solid var(--border-subtle);
+             border-radius:999px; padding:1px 10px; }
+.readout { display:flex; gap:28px; align-items:center; padding:10px 16px; min-height:56px;
+           background:var(--surface-1); border-top:1px solid var(--border-subtle); }
+.readout dl { display:flex; flex-direction:column; gap:1px; }
+.readout dt { font-size:.6875rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+              color:var(--text-muted); }
+.readout dd { font-size:.8125rem; color:var(--text-primary); }
+
+/* ---------- Varianti per preset (toggle micro-JS): mostra solo il formato attivo ---------- */
+#stage[data-preset="menutag"]  .for-coaster,  #stage[data-preset="menutag"]  .for-coincart,
+#stage[data-preset="coaster"]  .for-menutag,  #stage[data-preset="coaster"]  .for-coincart,
+#stage[data-preset="coincart"] .for-menutag,  #stage[data-preset="coincart"] .for-coaster { display:none; }
+
+/* ---------- Footer ---------- */
+.footer { border-top:1px solid var(--border-subtle); padding:14px 0 20px;
+          font-size:.75rem; color:var(--text-muted); }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV COMUNE ================= -->
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="brand" href="#" aria-label="MenuTag Studio — home">
+      <!-- quadratino brand: eco del prodotto — base chiara (--text-primary) e incisione scura (--surface-0) -->
+      <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+        <rect x="1" y="1" width="20" height="20" rx="5" fill="var(--text-primary)"/>
+        <rect x="4" y="4" width="5" height="5" fill="var(--surface-0)"/>
+        <rect x="13" y="4" width="5" height="5" fill="var(--surface-0)"/>
+        <rect x="4" y="13" width="5" height="5" fill="var(--surface-0)"/>
+        <rect x="13" y="13" width="2" height="2" fill="var(--surface-0)"/>
+        <rect x="16" y="13" width="2" height="2" fill="var(--surface-0)"/>
+        <rect x="13" y="16" width="2" height="2" fill="var(--surface-0)"/>
+        <rect x="16" y="16" width="2" height="2" fill="var(--surface-0)"/>
+      </svg>
+      MenuTag Studio
+    </a>
+    <nav aria-label="Principale">
+      <a class="nav-link is-active" href="#" aria-current="page">Configuratore</a>
+    </nav>
+    <div class="nav-auth">
+      <a class="nav-link" href="#">Accedi</a>
+      <a class="btn-accent" href="#">Registrati</a>
+    </div>
+  </div>
+</header>
+
+<main class="container" id="stage" data-preset="menutag">
+
+  <!-- ================= HERO COMPATTO ================= -->
+  <section class="hero">
+    <h1>Sottobicchiere e menù digitale. Lo stesso oggetto.</h1>
+    <p>Tre passi e nessun termine tecnico: scegli il formato, dicci cosa deve mostrare,
+       scarica il file di stampa (STL). Zero complicazioni — al resto pensiamo noi.</p>
+  </section>
+
+  <!-- ================= INDICATORE PASSI 1·2·3 ================= -->
+  <ol class="steps" aria-label="Avanzamento: passo 1 di 3">
+    <li class="is-current" aria-current="step"><span class="step-n">1</span> Formato</li>
+    <li aria-hidden="true" class="step-sep-holder"><span class="step-sep"></span></li>
+    <li><span class="step-n">2</span> Il tuo menù</li>
+    <li aria-hidden="true"><span class="step-sep"></span></li>
+    <li><span class="step-n">3</span> Scarica</li>
+  </ol>
+
+  <div class="stage-grid">
+
+    <!-- ================= PASSO 1 · LE 3 CARD PRESET ================= -->
+    <section aria-label="Passo 1 — Scegli il formato">
+      <div class="presets" role="group" aria-label="Formati disponibili">
+
+        <!-- MenuTag — selezionata -->
+        <button type="button" class="preset is-selected" data-preset="menutag" aria-pressed="true">
+          <span class="preset-thumb" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 56 56">
+              <rect x="6" y="6" width="44" height="44" rx="6" fill="var(--text-primary)"/>
+              <rect x="11" y="11" width="10" height="10" fill="var(--surface-0)"/>
+              <rect x="14" y="14" width="4" height="4" fill="var(--text-primary)"/>
+              <rect x="35" y="11" width="10" height="10" fill="var(--surface-0)"/>
+              <rect x="38" y="14" width="4" height="4" fill="var(--text-primary)"/>
+              <rect x="11" y="35" width="10" height="10" fill="var(--surface-0)"/>
+              <rect x="14" y="38" width="4" height="4" fill="var(--text-primary)"/>
+              <rect x="27" y="27" width="5" height="5" fill="var(--surface-0)"/>
+              <rect x="36" y="30" width="4" height="4" fill="var(--surface-0)"/>
+              <rect x="30" y="38" width="5" height="4" fill="var(--surface-0)"/>
+              <rect x="40" y="38" width="4" height="4" fill="var(--surface-0)"/>
+            </svg>
+          </span>
+          <span>
+            <span class="preset-head">
+              <h3>MenuTag</h3>
+              <span class="badge">Il prodotto principale</span>
+              <span class="flag-selected">● Selezionato</span>
+            </span>
+            <ul>
+              <li>Il QR del tuo menù inciso nell’oggetto: niente adesivi che si staccano</li>
+              <li>Sta sul tavolo, si scansiona al primo colpo</li>
+              <li>Lo stampi tu o lo porti a un service: la guida è inclusa</li>
+            </ul>
+            <span class="preset-meta">Targhetta quadrata · lato <span class="mono">58.8 mm</span></span>
+          </span>
+        </button>
+
+        <!-- Coaster -->
+        <button type="button" class="preset" data-preset="coaster" aria-pressed="false">
+          <span class="preset-thumb" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="22" fill="var(--text-primary)"/>
+              <circle cx="28" cy="28" r="15" fill="none" stroke="var(--surface-0)" stroke-width="3"/>
+              <circle cx="28" cy="28" r="4.5" fill="var(--surface-0)"/>
+            </svg>
+          </span>
+          <span>
+            <span class="preset-head">
+              <h3>Coaster</h3>
+              <span class="flag-selected">● Selezionato</span>
+            </span>
+            <ul>
+              <li>Il sottobicchiere con il tuo logo al centro, in due colori</li>
+              <li>Protegge il tavolo e si fa notare a ogni ordinazione</li>
+              <li>Una stampata, più pezzi: la serie per tutti i tavoli</li>
+            </ul>
+            <span class="preset-meta">Disco bicolore · logo inciso al centro</span>
+          </span>
+        </button>
+
+        <!-- Coin Cart -->
+        <button type="button" class="preset" data-preset="coincart" aria-pressed="false">
+          <span class="preset-thumb" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 56 56">
+              <circle cx="28" cy="30" r="18" fill="var(--text-primary)"/>
+              <circle cx="28" cy="30" r="14" fill="none" stroke="var(--surface-0)" stroke-width="2" stroke-dasharray="2 4"/>
+              <circle cx="28" cy="17" r="3" fill="var(--surface-1)" stroke="var(--surface-0)" stroke-width="2"/>
+              <rect x="24" y="26" width="8" height="8" rx="2" fill="var(--surface-0)" transform="rotate(45 28 30)"/>
+            </svg>
+          </span>
+          <span>
+            <span class="preset-head">
+              <h3>Coin Cart</h3>
+              <span class="flag-selected">● Selezionato</span>
+            </span>
+            <ul>
+              <li>Sblocca il carrello della spesa come una moneta</li>
+              <li>Il tuo logo su fronte e retro, sempre nel portachiavi del cliente</li>
+              <li>Il gadget che non finisce in un cassetto</li>
+            </ul>
+            <span class="preset-meta">Gettone Ø <span class="mono">25.75 mm</span> · foro portachiavi</span>
+          </span>
+        </button>
+      </div>
+
+      <!-- ============ Card "Sblocca lo Studio completo" ============ -->
+      <aside class="unlock" aria-label="Sblocca lo Studio completo">
+        <h2>Sblocca lo Studio completo</h2>
+        <ul>
+          <li>Il tuo archivio: ogni modello salvato, pronto da riaprire e duplicare</li>
+          <li>Personalizzazione completa: dimensioni, fronte e retro, logo nel QR, tag NFC</li>
+        </ul>
+        <a href="/studio">Scopri lo Studio completo →</a>
+      </aside>
+    </section>
+
+    <!-- ================= VIEWER BLUEPRINT (placeholder del 3D) ================= -->
+    <section class="viewer" aria-label="Anteprima del formato scelto">
+      <div class="viewer-stage blueprint" role="img"
+           aria-label="Anteprima: targhetta quadrata con QR inciso, base chiara e incisione scura, su griglia da banco di lavoro">
+
+        <svg class="scene" viewBox="0 0 560 440" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <!-- tacche d'angolo blueprint (dato tecnico → --tech) -->
+          <g stroke="var(--tech)" stroke-width="1.5" opacity=".45" fill="none">
+            <path d="M24 40 v-16 h16"/><path d="M520 24 h16 v16"/>
+            <path d="M24 400 v16 h16"/><path d="M536 400 v16 h-16"/>
+          </g>
+
+          <!-- ============ MENUTAG: targhetta quadrata smussata, QR a blocchi ============ -->
+          <g class="for-menutag">
+            <ellipse cx="280" cy="366" rx="168" ry="14" fill="var(--surface-0)" opacity=".4"/>
+            <!-- spessore del pezzo -->
+            <rect x="140" y="68" width="280" height="280" rx="26" fill="var(--text-muted)"/>
+            <!-- faccia superiore: base chiara -->
+            <rect x="140" y="60" width="280" height="280" rx="26" fill="var(--text-primary)"/>
+            <!-- incisione: pattern QR a blocchi (secondo colore del bicolore) -->
+            <g transform="translate(0,8)" fill="var(--surface-0)">
+              <!-- finder in alto a sinistra -->
+              <rect x="178" y="90" width="84" height="84"/>
+              <rect x="190" y="102" width="60" height="60" fill="var(--text-primary)"/>
+              <rect x="202" y="114" width="36" height="36"/>
+              <!-- finder in alto a destra -->
+              <rect x="298" y="90" width="84" height="84"/>
+              <rect x="310" y="102" width="60" height="60" fill="var(--text-primary)"/>
+              <rect x="322" y="114" width="36" height="36"/>
+              <!-- finder in basso a sinistra -->
+              <rect x="178" y="210" width="84" height="84"/>
+              <rect x="190" y="222" width="60" height="60" fill="var(--text-primary)"/>
+              <rect x="202" y="234" width="36" height="36"/>
+              <!-- moduli dati (pattern stilizzato deterministico) -->
+              <path d="M262 90h12v12h-12zM274 102h24v12h-24zM262 126h12v12h-12zM286 126h12v12h-12zM262 138h36v12h-36z
+M274 150h12v12h-12zM262 162h36v12h-36zM202 174h12v12h-12zM238 174h12v12h-12zM298 174h12v12h-12z
+M322 174h24v12h-24zM358 174h24v12h-24zM190 186h36v12h-36zM238 186h12v12h-12zM274 186h48v12h-48z
+M334 186h12v12h-12zM370 186h12v12h-12zM178 198h24v12h-24zM238 198h24v12h-24zM286 198h12v12h-12z
+M310 198h12v12h-12zM334 198h36v12h-36zM286 210h24v12h-24zM322 210h24v12h-24zM274 222h24v12h-24z
+M334 222h12v12h-12zM358 222h12v12h-12zM262 234h60v12h-60zM358 234h12v12h-12zM262 246h24v12h-24z
+M298 246h12v12h-12zM334 246h48v12h-48zM262 258h36v12h-36zM334 258h12v12h-12zM274 270h36v12h-36z
+M334 270h24v12h-24zM262 282h24v12h-24zM298 282h24v12h-24zM370 282h12v12h-12z"/>
+            </g>
+            <!-- quota (linea di misura in --tech; il valore è nel chip HTML .dim-label) -->
+            <g stroke="var(--tech)" stroke-width="1.5" fill="none" opacity=".9">
+              <path d="M140 352 v42 M420 352 v42" opacity=".45" stroke-dasharray="3 4"/>
+              <path d="M140 390 h280"/>
+              <path d="M146 386 l-6 4 6 4 M414 386 l6 4 -6 4"/>
+            </g>
+          </g>
+
+          <!-- ============ COASTER: disco bicolore, logo inciso al centro ============ -->
+          <g class="for-coaster">
+            <ellipse cx="280" cy="366" rx="160" ry="14" fill="var(--surface-0)" opacity=".4"/>
+            <circle cx="280" cy="213" r="145" fill="var(--text-muted)"/>
+            <circle cx="280" cy="205" r="145" fill="var(--text-primary)"/>
+            <circle cx="280" cy="205" r="116" fill="none" stroke="var(--surface-0)" stroke-width="6"/>
+            <rect x="256" y="181" width="48" height="48" rx="9" fill="var(--surface-0)" transform="rotate(45 280 205)"/>
+            <circle cx="280" cy="205" r="9" fill="var(--text-primary)"/>
+            <g stroke="var(--tech)" stroke-width="1.5" fill="none" opacity=".9">
+              <path d="M135 352 v42 M425 352 v42" opacity=".45" stroke-dasharray="3 4"/>
+              <path d="M135 390 h290"/>
+              <path d="M141 386 l-6 4 6 4 M419 386 l6 4 -6 4"/>
+            </g>
+          </g>
+
+          <!-- ============ COIN CART: gettone con foro portachiavi ============ -->
+          <g class="for-coincart">
+            <ellipse cx="280" cy="330" rx="112" ry="12" fill="var(--surface-0)" opacity=".4"/>
+            <circle cx="280" cy="203" r="95" fill="var(--text-muted)"/>
+            <circle cx="280" cy="195" r="95" fill="var(--text-primary)"/>
+            <circle cx="280" cy="195" r="84" fill="none" stroke="var(--surface-0)" stroke-width="5" stroke-dasharray="4 8"/>
+            <circle cx="280" cy="126" r="11" fill="var(--surface-1)" stroke="var(--surface-0)" stroke-width="5"/>
+            <rect x="261" y="186" width="38" height="38" rx="7" fill="var(--surface-0)" transform="rotate(45 280 205)"/>
+            <g stroke="var(--tech)" stroke-width="1.5" fill="none" opacity=".9">
+              <path d="M185 340 v54 M375 340 v54" opacity=".45" stroke-dasharray="3 4"/>
+              <path d="M185 390 h190"/>
+              <path d="M191 386 l-6 4 6 4 M369 386 l6 4 -6 4"/>
+            </g>
+          </g>
+        </svg>
+
+        <!-- chip sovrapposti: fondo opaco, la griglia non passa mai sotto il testo -->
+        <span class="chip chip-title"><span class="chip-dot" aria-hidden="true"></span>
+          <span class="for-menutag">Anteprima · MenuTag</span>
+          <span class="for-coaster">Anteprima · Coaster</span>
+          <span class="for-coincart">Anteprima · Coin Cart</span>
+        </span>
+        <span class="chip chip-note">
+          <span class="for-menutag">QR dimostrativo — il tuo indirizzo al passo 2</span>
+          <span class="for-coaster">Logo dimostrativo — il tuo al passo 2</span>
+          <span class="for-coincart">Logo dimostrativo — il tuo al passo 2</span>
+        </span>
+
+        <!-- valore della quota: sempre HTML, sempre mono -->
+        <span class="dim-label">
+          <span class="for-menutag"><span class="mono">58.8 mm</span></span>
+          <span class="for-coaster">Ø <span class="mono">85 mm</span></span>
+          <span class="for-coincart">Ø <span class="mono">25.75 mm</span></span>
+        </span>
+      </div>
+
+      <!-- readout numerico: etichette umane (glossario), valori in mono -->
+      <div class="readout" aria-label="Specifiche del preset">
+        <dl><dt>Formato</dt><dd>
+          <span class="for-menutag">MenuTag</span>
+          <span class="for-coaster">Coaster</span>
+          <span class="for-coincart">Coin Cart</span>
+        </dd></dl>
+        <dl><dt>Misura</dt><dd>
+          <span class="for-menutag">lato <span class="mono">58.8 mm</span></span>
+          <span class="for-coaster">Ø <span class="mono">85 mm</span></span>
+          <span class="for-coincart">Ø <span class="mono">25.75 mm</span></span>
+        </dd></dl>
+        <dl class="for-menutag"><dt>Tag NFC</dt><dd>pausa dopo lo strato <span class="mono">19/29</span></dd></dl>
+        <dl class="for-menutag"><dt>Affidabilità di scansione</dt><dd>Massima (consigliata)</dd></dl>
+        <dl class="for-coaster"><dt>Resa</dt><dd>due colori, un solo pezzo</dd></dl>
+        <dl class="for-coaster"><dt>Logo</dt><dd>inciso al centro</dd></dl>
+        <dl class="for-coincart"><dt>Aggancio</dt><dd>foro portachiavi</dd></dl>
+        <dl class="for-coincart"><dt>Logo</dt><dd>fronte e retro</dd></dl>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    Mockup statico — Fase 0 · Restyle «Cyber-Maker Studio» · Token, glossario e flussi in <span style="color:var(--text-secondary)">docs/design/</span>.
+    Tema unico v1: dark nativa (il chiaro è roadmap).
+  </div>
+</footer>
+
+<!-- Micro-JS: solo il toggle di selezione dei preset (nessuna altra logica). -->
+<script>
+  const stage = document.getElementById('stage');
+  document.querySelectorAll('.preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset').forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-selected', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      stage.dataset.preset = btn.dataset.preset;
+    });
+  });
+</script>
+</body>
+</html>
