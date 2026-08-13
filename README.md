@@ -237,6 +237,12 @@ Poi i **due comandi**:
 ./vendor/bin/sail artisan migrate:fresh --seed
 ```
 
+Su un database **vuoto**, `worker` e `scheduler` partono insieme agli altri
+servizi e possono interrogare tabelle che non esistono ancora: dopo la
+migrazione, se non risultano generazioni in coda, riavviali con
+`docker compose restart worker scheduler` (le esecuzioni successive, a
+schema già presente, non hanno questo problema).
+
 Per l'interfaccia servono anche gli asset frontend
 (`./vendor/bin/sail npm install && ./vendor/bin/sail npm run build`), poi
 l'app è su <http://localhost>.
@@ -476,12 +482,17 @@ Limiti e code note dei workstream, da rifinire:
   all'esito `completed`).
 - `welcome.blade.php` dello starter kit non è più raggiungibile (la home è il
   configuratore): rimozione cosmetica rimandata.
-- **`sail up` e la generazione end-to-end nei container non sono stati
-  verificati**: la macchina di sviluppo non ha Docker. Dockerfile e
-  docker-compose sono stati auditati a mano (venv nell'immagine fuori dal
-  bind mount, volume storage condiviso col worker, `DB_QUEUE_RETRY_AFTER`
-  oltre il timeout del job): la prima esecuzione su un host con Docker va
-  considerata una verifica dovuta, non una formalità.
+- **`sail up` verificato end-to-end** (build immagine, 4 servizi, generazione
+  reale via worker con motore Python, volume storage condiviso, API HTTP):
+  esito conforme al riferimento validato (`PAUSE_Z=2.0`, `PAUSE_LAYER=19`,
+  `PRINTABILITY=ok`). **Nota operativa**: `worker` e `scheduler` partono
+  insieme a `mariadb`/`laravel.test` e possono tentare una query prima che
+  `migrate:fresh` crei le tabelle — supervisord esaurisce i retry rapidi ed
+  entra in stato `FATAL` senza riprovare. Dopo il primo
+  `sail artisan migrate:fresh --seed` su un database vuoto, esegui
+  `docker compose restart worker scheduler` (o riavvia `sail up` una volta
+  migrato). Le esecuzioni successive, a schema già presente, non hanno
+  questo problema.
 
 ## Deviazioni e scelte dichiarate
 
