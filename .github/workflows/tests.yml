@@ -13,6 +13,17 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    # composer setup runs `artisan migrate --force` against the REAL .env
+    # (copied from .env.example, which points at MariaDB via Sail — there is
+    # no database service in this workflow). Real env vars beat .env values
+    # (phpdotenv is immutable), so this overrides it to sqlite: no service
+    # container needed, matching the documented no-Docker path (README §7)
+    # and the sqlite:memory: the test run itself already uses (phpunit.xml) —
+    # that later override applies only within the PHPUnit process.
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: database/database.sqlite
+
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
