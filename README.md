@@ -49,6 +49,14 @@ il punto d'accesso al menù — **la doppia funzione è l'argomento di vendita**
 Lo stesso oggetto veicola anche carta dei vini, lista allergeni, credenziali
 Wi-Fi, pagina recensioni, ordinazione al tavolo, raccolta punti.
 
+![Configuratore: tre preset validati (MenuTag preselezionato) e anteprima 3D con QR reale e scansionabile](docs/images/01-home.png)
+
+L'anteprima parametrica **non genera richieste al server**: three.js
+ricalcola la geometria e il QR (libreria `qrcode`, stessa tabella di
+capacità byte-mode di PHP e motore) client-side a ogni trascinamento.
+
+![Anteprima 3D che ruota dal vivo — nessuna chiamata al server](docs/images/07-viewer-rotazione.gif)
+
 **A chi si rivolge:**
 
 - **Cliente diretto (B2B):** ristoranti, bar, caffetterie, pizzerie,
@@ -62,10 +70,7 @@ Wi-Fi, pagina recensioni, ordinazione al tavolo, raccolta punti.
   dashboard con libreria loghi, QR salvati, storico e duplicazione delle
   configurazioni.
 
-> Screenshot e GIF dell'interfaccia non sono ancora inclusi nel repo: vanno
-> catturati da una istanza avviata (vedi §6) prima della pubblicazione su
-> GitHub. Il flusso da mostrare: preset picker → configuratore con anteprima
-> 3D e QR scansionabile → report di stampabilità → download.
+![Dashboard: storico targhette in tutti gli stati, libreria loghi generati via codice, QR salvati riutilizzabili](docs/images/05-dashboard.png)
 
 ## 2. Architettura: Laravel orchestra, Python calcola
 
@@ -152,6 +157,21 @@ verificata, mai da un form vuoto.
 | Compensazione XY | 0 | 0 | **−0.10 mm/lato** (vedi §10) |
 | Pezzi per piatto A1 mini | 4 | 4 | 25 |
 
+<table>
+<tr>
+<td width="50%">
+
+![Coaster: bordo antigoccia, capacità 5.3 ml, PETG lavabile](docs/images/02-coaster.png)
+
+</td>
+<td width="50%">
+
+![Coin Cart: avvertenza normativa Reg. CE 2182/2004 e compensazione XY](docs/images/03-coin-cart.png)
+
+</td>
+</tr>
+</table>
+
 **Le fasce di prodotto** (chi può avere cosa, a quale dimensione):
 
 | Fascia | Disponibile | Perché |
@@ -216,6 +236,8 @@ controllo che verifica l'accoppiamento. Le soglie di dettaglio salgono a
 **4 × ugello** (serve la parete della base *e* il riempimento dell'accento) e
 la profondità consigliata scende a 0.5 mm: ogni layer nella zona di intarsio
 è bicromatico e costa uno spurgo.
+
+![Generatore parametrico: parametri sbloccati sul preset MenuTag, con fasce di prodotto live](docs/images/04-configuratore-personalizzato.png)
 
 ## 6. Avvio con Sail in due comandi
 
@@ -345,6 +367,8 @@ testurizzato). Ogni targhetta completata ha la sua **guida di stampa
 generata** (`/targhette/{id}/guida`, anche via API) coi valori reali del
 pezzo; questi sono i riferimenti generali con **PLA matte**:
 
+![Report di stampabilità su una generazione reale: STL caricato via STLLoader, QR decodificato dalla geometria esportata, pausa NFC sul reticolo dei layer](docs/images/06-report-stampabilita.png)
+
 | | Ugello 0.2 | Ugello 0.4 |
 |---|---|---|
 | Layer height | 0.05 – 0.15 mm (default 0.10) | 0.08 – 0.30 mm (default 0.10) |
@@ -464,7 +488,6 @@ Dichiarato e **non implementato** (decisioni Fase 0 §6, spec §2.5/§8.9):
 
 Limiti e code note dei workstream, da rifinire:
 
-- **Screenshot/GIF nel README** (§9.1): da catturare da un'istanza avviata.
 - **Verifica end-to-end nel browser** del canvas WebGL (rotazione, texture
   QR, caricamento STL reale): il cablaggio è verificato via markup e suite
   Pest; un test Dusk/browser resta da aggiungere.
