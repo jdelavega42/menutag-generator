@@ -64,6 +64,8 @@ class TagHistory extends Component
         $rows = collect($tags->items())->map(function (MenuTag $menuTag): array {
             $parameters = $menuTag->parameters;
 
+            $formatMm = fn (float $value): string => rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+
             return [
                 'id' => $menuTag->id,
                 'label' => $menuTag->label,
@@ -71,15 +73,25 @@ class TagHistory extends Component
                 'customized' => $menuTag->customized,
                 'status' => $menuTag->status->value,
                 'printability' => $menuTag->printability?->value,
-                'summary' => sprintf(
-                    '%s · %s mm × %s mm%s%s',
-                    $parameters->shape->value === 'square' ? 'quadrato' : 'cerchio',
-                    rtrim(rtrim(number_format($parameters->size, 2, '.', ''), '0'), '.'),
-                    rtrim(rtrim(number_format($parameters->thickness, 2, '.', ''), '0'), '.'),
-                    $parameters->nfc ? ' · NFC Ø'.$parameters->tagDiameter->value : '',
-                    $parameters->plate > 1 ? ' · piastra da '.$parameters->plate : '',
+                // Measure column: mono readout per mockup 04 (Ø for circles).
+                'measure' => sprintf(
+                    '%s%s mm',
+                    $parameters->shape->value === 'circle' ? 'Ø ' : '',
+                    $formatMm($parameters->size),
                 ),
-                'mode' => $parameters->mode->value,
+                // Secondary configuration line, in glossary language.
+                'detail' => sprintf(
+                    '%s · %s · spessore %s mm%s%s',
+                    $parameters->shape->value === 'square' ? 'quadrato' : 'cerchio',
+                    match ($parameters->mode->value) {
+                        'engrave' => 'incisa',
+                        'relief' => 'rilievo',
+                        default => 'a filo bicolore',
+                    },
+                    $formatMm($parameters->thickness),
+                    $parameters->nfc ? ' · NFC Ø'.$parameters->tagDiameter->value : '',
+                    $parameters->plate > 1 ? ' · '.$parameters->plate.' pezzi per stampata' : '',
+                ),
                 'created_at' => $menuTag->created_at?->format('d/m/Y H:i'),
                 'download_base' => $menuTag->status === MenuTagStatus::Completed
                     ? $this->downloadUrl($menuTag, 'base')

@@ -1,8 +1,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+{{-- Visible product name is «MenuTag Studio» (surface rebrand only: code
+     identifiers, routes and config keys stay untouched). --}}
 <title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
+    {{ filled($title ?? null) ? $title.' — MenuTag Studio' : 'MenuTag Studio' }}
 </title>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -12,4 +14,5 @@
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+{{-- No @fluxAppearance: single dark-native theme in v1 (restyle brief §3.1),
+     <html class="dark"> is hardcoded in every layout. --}}

@@ -13,7 +13,6 @@
  *   menutag-failed browser events.
  */
 
-import { createMenuTagViewer } from '../viewer.js';
 import {
     EPS,
     bicolorLayers,
@@ -23,6 +22,16 @@ import {
     roundUpToTenth,
     squareModuleAdvantagePct,
 } from './qr-rules.js';
+
+/**
+ * Performance budget (restyle brief §6): three.js and viewer.js must stay
+ * OUT of the synchronous chunks, so the viewer module is reached only
+ * through this dynamic import. The chunk is warmed on idle from app.js and
+ * <link rel="modulepreload">'d by the public layout, so by the time Alpine
+ * mounts the component the module is normally already fetched and compiled
+ * — the preview stays immediate (§4.3), with zero server requests as before.
+ */
+const loadViewerModule = () => import('../viewer.js');
 
 const num = (value, fallback = 0) => {
     const parsed = Number(value);
@@ -271,24 +280,30 @@ export function registerMenuTagAlpine(Alpine) {
     Alpine.data('menuTagViewer', (options) => ({
         viewer: null,
         _listeners: [],
+        _destroyed: false,
+        _pendingParams: null,
+        _pendingStl: null,
 
-        // Scene initialized ONCE here (x-init); the container carries
-        // wire:ignore so Livewire morphing never touches the canvas.
+        // Scene initialized ONCE per component lifecycle (contract 04); the
+        // container carries wire:ignore so Livewire morphing never touches
+        // the canvas. The module arrives via dynamic import (§6 budget):
+        // listeners attach BEFORE it resolves so nothing dispatched during
+        // the (normally already-warm) load is lost — the latest params/STL
+        // are buffered and applied at creation.
         init() {
-            this.viewer = createMenuTagViewer(this.$refs.canvasHost, options.params, product());
+            this._pendingParams = options.params;
+            this._pendingStl = options.stlUrl
+                ? { url: options.stlUrl, accentUrl: options.accentStlUrl ?? null }
+                : null;
 
-            if (options.stlUrl) {
-                this.viewer.loadStl(options.stlUrl, options.accentStlUrl ?? null);
-            }
-
-            const onPreview = (event) => this.viewer?.update(event.detail.params);
+            const onPreview = (event) => this._applyParams(event.detail.params);
             // Server-side mutations only (preset change, size adjustment).
-            const onUpdated = (event) => this.viewer?.update(event.detail.params);
+            const onUpdated = (event) => this._applyParams(event.detail.params);
             const onCompleted = (event) => {
                 const { stlUrl, accentStlUrl } = event.detail;
 
                 if (stlUrl) {
-                    this.viewer?.loadStl(stlUrl, accentStlUrl ?? null);
+                    this._applyStl(stlUrl, accentStlUrl ?? null);
                 }
             };
 
@@ -301,10 +316,42 @@ export function registerMenuTagAlpine(Alpine) {
                 ['menutag-updated', onUpdated],
                 ['menutag-completed', onCompleted],
             ];
+
+            loadViewerModule().then(({ createMenuTagViewer }) => {
+                if (this._destroyed) {
+                    return;
+                }
+
+                this.viewer = createMenuTagViewer(this.$refs.canvasHost, this._pendingParams, product());
+
+                if (this._pendingStl) {
+                    this.viewer.loadStl(this._pendingStl.url, this._pendingStl.accentUrl);
+                    this._pendingStl = null;
+                }
+            });
         },
 
-        // Mandatory cleanup: browsers cap WebGL contexts (~16).
+        _applyParams(params) {
+            if (this.viewer) {
+                this.viewer.update(params);
+            } else {
+                this._pendingParams = params;
+            }
+        },
+
+        _applyStl(url, accentUrl) {
+            if (this.viewer) {
+                this.viewer.loadStl(url, accentUrl);
+            } else {
+                this._pendingStl = { url, accentUrl };
+            }
+        },
+
+        // Mandatory cleanup: browsers cap WebGL contexts (~16). The flag
+        // also covers a destroy that lands while the import is in flight.
         destroy() {
+            this._destroyed = true;
+
             for (const [name, handler] of this._listeners) {
                 window.removeEventListener(name, handler);
             }

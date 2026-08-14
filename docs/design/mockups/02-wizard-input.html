@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280">
+<title>MenuTag Studio — Wizard · Passo 2 (mockup Fase 0)</title>
+<!--
+  Mockup statico Fase 0 — restyle "Cyber-Maker Studio".
+  Self-contained: nessuna risorsa esterna, nessuna dipendenza.
+  Tutti i colori/raggi/durate passano dai token del blocco canonico
+  (docs/design/tokens.md §8, embeddato verbatim qui sotto).
+  Micro-JS inline solo per il toggle documentale fra le due varianti
+  del Passo 2 (URL per MenuTag, logo per Coaster/Coin Cart).
+-->
+<style>
+/* ============================================================
+   BLOCCO CSS CANONICO — copiato VERBATIM da docs/design/tokens.md §8
+   ============================================================ */
+:root {
+  --surface-0:#0B0F14; --surface-1:#11161D; --surface-2:#171E27; --surface-3:#1E2631;
+  --border-subtle:#232C38; --border-strong:#33404F;
+  --text-primary:#E8EDF2; --text-secondary:#A7B2BE; --text-muted:#7B8A99;
+  --accent:#FF7A1A; --accent-ink:#161006; --tech:#2FD4E6;
+  --ok:#4ADE80; --warn:#FBBF24; --blocked:#F98080;
+  --ok-surface:#122117; --warn-surface:#231D0E; --blocked-surface:#231314;
+  --grid-line:rgba(47,212,230,.06);
+  --font-sans:'Instrument Sans', ui-sans-serif, system-ui;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --r-control:6px; --r-card:10px; --r-panel:12px;
+  --t-micro:140ms; --t-panel:200ms; --ease:cubic-bezier(.2,0,0,1);
+}
+body { background:var(--surface-0); color:var(--text-primary);
+       font-family:var(--font-sans); font-size:14px; line-height:1.55; }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+        color:var(--tech); }
+.blueprint { background-image:
+  linear-gradient(var(--grid-line) 1px, transparent 1px),
+  linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:24px 24px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration:0ms !important; animation:none !important; }
+}
+/* ============================================================
+   FINE BLOCCO CANONICO — da qui in poi solo var(--token)
+   ============================================================ */
+
+* { box-sizing:border-box; margin:0; padding:0; }
+button, input { font:inherit; color:inherit; }
+a { color:var(--tech); text-decoration:none; }
+a:hover { text-decoration:underline; }
+:focus-visible { outline:2px solid var(--border-strong); outline-offset:2px; }
+
+.shell { max-width:1280px; margin:0 auto; padding:0 24px; }
+
+/* ---------- Nav comune ---------- */
+.nav { border-bottom:1px solid var(--border-subtle); background:var(--surface-1); }
+.nav-row { display:flex; align-items:center; gap:32px; height:60px; }
+.brand { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:600;
+         color:var(--text-primary); }
+.brand:hover { text-decoration:none; }
+.brand-mark { display:block; border-radius:var(--r-control); }
+.brand em { font-style:normal; color:var(--text-secondary); font-weight:500; }
+.nav-links { display:flex; gap:24px; flex:1; }
+.nav-link { color:var(--text-secondary); font-weight:500; padding:19px 2px 17px;
+            border-bottom:2px solid transparent;
+            transition:color var(--t-micro) var(--ease); }
+.nav-link:hover { color:var(--text-primary); text-decoration:none; }
+.nav-link.is-active { color:var(--text-primary); border-bottom-color:var(--accent); }
+.nav-auth { display:flex; align-items:center; gap:16px; }
+.btn-outline { display:inline-block; padding:7px 16px; border:1px solid var(--border-strong);
+               border-radius:var(--r-control); color:var(--text-primary); font-weight:500;
+               background:transparent; cursor:pointer;
+               transition:background var(--t-micro) var(--ease); }
+.btn-outline:hover { background:var(--surface-3); text-decoration:none; }
+
+/* ---------- Indicatore passi + tab varianti ---------- */
+.wizard-head { display:flex; align-items:center; justify-content:space-between;
+               gap:24px; padding:18px 0 16px; }
+.steps { display:flex; align-items:center; gap:12px; list-style:none; }
+.step { display:flex; align-items:center; gap:10px; }
+.step-dot { width:28px; height:28px; border-radius:999px; /* raggio badge — tokens.md §6 */
+            display:flex; align-items:center; justify-content:center;
+            font-size:13px; font-weight:600; flex:none;
+            border:1px solid var(--border-subtle); background:var(--surface-2);
+            color:var(--text-muted); }
+.step-label { font-size:13px; font-weight:500; color:var(--text-muted); line-height:1.3; }
+.step-label small { display:block; font-size:12px; font-weight:400; color:var(--text-muted); }
+.step.is-done .step-dot { border-color:var(--accent); color:var(--accent); background:transparent; }
+.step.is-done .step-label { color:var(--text-secondary); }
+.step.is-active .step-dot { background:var(--accent); border-color:var(--accent);
+                            color:var(--accent-ink); }
+.step.is-active .step-label { color:var(--text-primary); font-weight:600; }
+.step-line { width:36px; height:2px; background:var(--border-subtle); flex:none; }
+.step-line.is-done { background:var(--accent); }
+
+.variant-tabs { display:flex; align-items:center; gap:8px; }
+.variant-tab { display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+               padding:8px 14px; border-radius:var(--r-control); cursor:pointer;
+               background:var(--surface-2); border:1px solid var(--border-subtle);
+               text-align:left; transition:border-color var(--t-micro) var(--ease); }
+.variant-tab strong { font-size:13px; font-weight:600; color:var(--text-secondary); }
+.variant-tab span { font-size:12px; color:var(--text-muted); }
+.variant-tab[aria-selected="true"] { border-color:var(--accent); }
+.variant-tab[aria-selected="true"] strong { color:var(--text-primary); }
+.variant-tab.is-doc { border-style:dashed; }
+.tab-flag { font-size:11px; font-weight:500; color:var(--text-muted);
+            border:1px solid var(--border-subtle); background:var(--surface-1);
+            border-radius:999px; /* raggio badge — tokens.md §6 */
+            padding:1px 8px; margin-left:8px; }
+.tabs-note { font-size:12px; color:var(--text-muted); max-width:320px; text-align:right; }
+
+/* ---------- Griglia principale ---------- */
+.wizard-grid { display:grid; grid-template-columns:416px minmax(0,1fr); gap:24px;
+               align-items:start; padding-bottom:32px; }
+
+/* ---------- Pannello input (sinistra) ---------- */
+.panel { background:var(--surface-1); border:1px solid var(--border-subtle);
+         border-radius:var(--r-panel); padding:24px; }
+.eyebrow { font-size:12px; font-weight:500; letter-spacing:.08em; text-transform:uppercase;
+           color:var(--text-muted); margin-bottom:6px; }
+.panel h1 { font-size:22px; font-weight:600; line-height:1.25; margin-bottom:4px; }
+.panel .lede { color:var(--text-secondary); margin-bottom:20px; }
+.field-label { display:block; font-size:13px; font-weight:500; color:var(--text-secondary);
+               margin-bottom:6px; }
+.input-url { width:100%; padding:11px 12px; font-family:var(--font-mono);
+             font-variant-numeric:tabular-nums; font-size:14px;
+             background:var(--surface-2); color:var(--text-primary);
+             border:1px solid var(--border-strong); border-radius:var(--r-control);
+             transition:border-color var(--t-micro) var(--ease); }
+.input-url::placeholder { color:var(--text-muted); }
+.input-url:focus { outline:2px solid var(--border-strong); outline-offset:2px; }
+.input-state { display:flex; align-items:center; gap:6px; margin-top:8px;
+               font-size:12px; color:var(--text-secondary); }
+.input-state .tick { color:var(--ok); font-weight:600; }
+
+.hint { display:flex; gap:10px; margin-top:16px; padding:12px 14px;
+        background:var(--surface-2); border:1px solid var(--border-subtle);
+        border-left:3px solid var(--tech); border-radius:var(--r-card); }
+.hint svg { flex:none; margin-top:2px; color:var(--tech); }
+.hint p { font-size:13px; color:var(--text-secondary); }
+.hint p + p { margin-top:4px; font-size:12px; color:var(--text-muted); }
+
+.fact-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+            margin-top:16px; padding:12px 14px; background:var(--surface-2);
+            border:1px solid var(--border-subtle); border-radius:var(--r-card); }
+.fact-row dt { font-size:13px; font-weight:500; color:var(--text-secondary); }
+.fact-row dd { text-align:right; }
+.fact-row .fact-value { font-size:14px; font-weight:600; color:var(--text-primary); }
+.fact-row .fact-note { display:block; font-size:12px; color:var(--text-muted); }
+
+/* Dropzone (variante Coaster / Coin Cart) */
+.dropzone { margin-top:2px; padding:32px 20px; text-align:center;
+            background:var(--surface-2); border:2px dashed var(--border-strong);
+            border-radius:var(--r-card); color:var(--text-secondary);
+            transition:background var(--t-micro) var(--ease); }
+.dropzone:hover { background:var(--surface-3); }
+.dropzone svg { color:var(--text-muted); margin-bottom:10px; }
+.dropzone strong { display:block; font-size:16px; font-weight:600;
+                   color:var(--text-primary); margin-bottom:2px; }
+.dropzone small { display:block; font-size:12px; color:var(--text-muted); margin-bottom:14px; }
+
+.cta { display:block; width:100%; margin-top:24px; padding:13px 20px;
+       background:var(--accent); color:var(--accent-ink);
+       border:1px solid transparent; border-radius:var(--r-control);
+       font-size:16px; font-weight:600; cursor:pointer;
+       transition:filter var(--t-micro) var(--ease); }
+.cta:hover { filter:brightness(1.07); } /* nessun colore nuovo: derivata a runtime di --accent */
+.quota-note { margin-top:10px; text-align:center; font-size:12px; color:var(--text-muted); }
+
+/* ---------- Viewer (destra) ---------- */
+.viewer { background:var(--surface-1); border:1px solid var(--border-subtle);
+          border-radius:var(--r-panel); overflow:hidden; }
+.viewer-canvas { position:relative; min-height:584px; background-color:var(--surface-0);
+                 display:flex; align-items:center; justify-content:center; padding:32px; }
+.viewer-canvas svg.scene { height:520px; width:auto; }
+.hud { position:absolute; display:flex; align-items:center; gap:8px; }
+.hud-badge { display:flex; align-items:center; gap:7px; padding:5px 12px;
+             background:var(--surface-1); border:1px solid var(--border-subtle);
+             border-radius:999px; /* raggio badge — tokens.md §6 */
+             font-size:12px; font-weight:500; color:var(--text-secondary); }
+.hud-badge .dot { width:7px; height:7px; border-radius:999px; /* raggio badge — tokens.md §6 */
+                  background:var(--tech); }
+.hud-tl { top:16px; left:16px; }
+.hud-tr { top:16px; right:16px; }
+.hud-bl { bottom:16px; left:16px; }
+.hud-btn { width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+           background:var(--surface-1); border:1px solid var(--border-subtle);
+           border-radius:var(--r-control); color:var(--text-secondary);
+           font-size:14px; cursor:pointer;
+           transition:background var(--t-micro) var(--ease); }
+.hud-btn:hover { background:var(--surface-3); }
+.readout { padding:6px 12px; background:var(--surface-1); border:1px solid var(--border-subtle);
+           border-radius:var(--r-control); font-size:12px; color:var(--text-secondary); }
+.viewer-caption { display:flex; align-items:center; justify-content:center; gap:8px;
+                  padding:12px 16px; border-top:1px solid var(--border-subtle);
+                  font-size:13px; color:var(--text-muted); }
+.viewer-caption svg { color:var(--tech); flex:none; }
+
+/* ---------- Toggle documentale fra le varianti ---------- */
+body[data-variant="url"] .only-logo { display:none !important; }
+body[data-variant="logo"] .only-url { display:none !important; }
+
+.page-note { padding:16px 0 40px; font-size:12px; color:var(--text-muted);
+             border-top:1px solid var(--border-subtle); }
+</style>
+</head>
+<body data-variant="url">
+
+<!-- ================= NAV COMUNE ================= -->
+<nav class="nav" aria-label="Navigazione principale">
+  <div class="shell nav-row">
+    <a class="brand" href="#">
+      <!-- Quadratino brand: eco della targhetta fisica (base chiara, incisione scura) -->
+      <svg class="brand-mark" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="0" y="0" width="24" height="24" rx="5" fill="var(--text-primary)"/>
+        <g fill="var(--surface-0)">
+          <path fill-rule="evenodd" d="M4 4h7v7H4zM6 6h3v3H6z"/>
+          <path fill-rule="evenodd" d="M13 4h7v7h-7zM15 6h3v3h-3z"/>
+          <path fill-rule="evenodd" d="M4 13h7v7H4zM6 15h3v3H6z"/>
+          <rect x="13" y="13" width="3" height="3"/>
+          <rect x="17" y="13" width="3" height="3"/>
+          <rect x="15" y="16" width="3" height="3"/>
+          <rect x="13" y="17" width="2" height="3"/>
+          <rect x="18" y="17" width="2" height="3"/>
+        </g>
+      </svg>
+      MenuTag&nbsp;<em>Studio</em>
+    </a>
+    <div class="nav-links">
+      <a class="nav-link is-active" href="#" aria-current="page">Configuratore</a>
+    </div>
+    <div class="nav-auth">
+      <a href="#">Accedi</a>
+      <a class="btn-outline" href="#">Registrati</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= INDICATORE PASSI + TAB VARIANTI ================= -->
+<header class="shell wizard-head">
+  <ol class="steps" aria-label="Avanzamento del wizard">
+    <li class="step is-done">
+      <span class="step-dot" aria-hidden="true">&#10003;</span>
+      <span class="step-label">Formato<small>MenuTag</small></span>
+    </li>
+    <li class="step-line is-done" role="presentation" aria-hidden="true"></li>
+    <li class="step is-active" aria-current="step">
+      <span class="step-dot" aria-hidden="true">2</span>
+      <span class="step-label">Il tuo menù<small>l'input essenziale</small></span>
+    </li>
+    <li class="step-line" role="presentation" aria-hidden="true"></li>
+    <li class="step">
+      <span class="step-dot" aria-hidden="true">3</span>
+      <span class="step-label">Crea e scarica<small>file di stampa + guida</small></span>
+    </li>
+  </ol>
+
+  <div>
+    <div class="variant-tabs" role="tablist" aria-label="Varianti del passo 2 (documentazione)">
+      <button class="variant-tab" role="tab" data-variant="url" aria-selected="true">
+        <strong>MenuTag</strong>
+        <span>l'indirizzo del tuo menù</span>
+      </button>
+      <button class="variant-tab is-doc" role="tab" data-variant="logo" aria-selected="false"
+              aria-disabled="true"
+              title="Nel flusso reale questa scheda non esiste: il formato è già stato scelto al Passo 1. Qui è cliccabile solo per documentare la variante.">
+        <strong>Coaster / Coin Cart <span class="tab-flag">variante</span></strong>
+        <span>il tuo logo</span>
+      </button>
+    </div>
+  </div>
+</header>
+<p class="shell tabs-note" style="max-width:1280px; text-align:right; padding-bottom:12px;">
+  La seconda scheda è disattivata nel prodotto (il formato si sceglie al Passo&nbsp;1):
+  qui risponde al clic solo per documentare entrambe le varianti in un unico mockup.
+</p>
+
+<!-- ================= CONTENUTO DEL PASSO ================= -->
+<main class="shell wizard-grid">
+
+  <!-- ---------- Pannello input ---------- -->
+  <section class="panel" aria-label="Input essenziale del formato">
+
+    <!-- Variante MenuTag: URL -->
+    <div class="only-url">
+      <p class="eyebrow">Passo 2 di 3</p>
+      <h1>Collega il tuo menù</h1>
+      <p class="lede">Scrivi l'indirizzo: il QR si incide da solo.</p>
+
+      <label class="field-label" for="menu-url">L'indirizzo del tuo menù</label>
+      <input class="input-url" id="menu-url" type="url" inputmode="url"
+             value="https://menu.damario.it" spellcheck="false"
+             placeholder="https://il-tuo-menu.it">
+      <p class="input-state">
+        <span class="tick" aria-hidden="true">&#10003;</span>
+        Indirizzo valido — il QR qui accanto è già aggiornato.
+      </p>
+
+      <div class="hint">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.5" aria-hidden="true">
+          <path d="M1.5 11.5 11.5 1.5l3 3L4.5 14.5l-3 0z"/>
+          <path d="M8 5l1.5 1.5M6 7l1.5 1.5M4 9l1.5 1.5"/>
+        </svg>
+        <div>
+          <p>Un indirizzo corto mantiene la targhetta compatta:
+             ora <span class="mono">58.8&nbsp;mm</span>.</p>
+          <p>Con un indirizzo più lungo il QR ha bisogno di più blocchi
+             e la targhetta cresce di conseguenza.</p>
+        </div>
+      </div>
+
+      <dl class="fact-row">
+        <dt>Affidabilità di scansione</dt>
+        <dd>
+          <span class="fact-value">Massima</span>
+          <span class="fact-note">consigliata — impostata automaticamente dal formato</span>
+        </dd>
+      </dl>
+    </div>
+
+    <!-- Variante Coaster / Coin Cart: logo (documentale) -->
+    <div class="only-logo">
+      <p class="eyebrow">Passo 2 di 3</p>
+      <h1>Il tuo logo</h1>
+      <p class="lede">Caricalo: l'incisione appare subito qui accanto.</p>
+
+      <div class="dropzone" role="button" tabindex="0"
+           aria-label="Trascina qui il tuo logo oppure scegli un file">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 26v6a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2v-6"/>
+          <path d="M20 27V8"/>
+          <path d="M13 15l7-7 7 7"/>
+        </svg>
+        <strong>Trascina qui il tuo logo</strong>
+        <small>PNG o SVG — sfondo trasparente consigliato</small>
+        <span class="btn-outline">Scegli un file</span>
+      </div>
+
+      <div class="hint">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.5" aria-hidden="true">
+          <circle cx="8" cy="8" r="6.5"/>
+          <path d="M8 5v.5M8 8v3"/>
+        </svg>
+        <div>
+          <p>Il logo viene inciso al centro della base:
+             Coaster <span class="mono">&Oslash;85&nbsp;mm</span>,
+             Coin Cart <span class="mono">&Oslash;25.75&nbsp;mm</span>.</p>
+          <p>Tracciati semplici e pieni si incidono meglio dei dettagli sottili.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA + quota: comuni a entrambe le varianti -->
+    <button class="cta" type="button">Crea il file di stampa</button>
+    <p class="quota-note">5 generazioni all'ora per i visitatori.</p>
+  </section>
+
+  <!-- ---------- Viewer protagonista ---------- -->
+  <section class="viewer" aria-label="Anteprima del pezzo">
+    <div class="viewer-canvas blueprint" role="img"
+         aria-label="Anteprima della targhetta con il QR inciso, aggiornata in tempo reale">
+
+      <div class="hud hud-tl">
+        <span class="hud-badge"><span class="dot" aria-hidden="true"></span>Anteprima live</span>
+      </div>
+      <div class="hud hud-tr" aria-hidden="true">
+        <span class="hud-btn">+</span>
+        <span class="hud-btn">&minus;</span>
+        <span class="hud-btn">&#8634;</span>
+      </div>
+      <div class="hud hud-bl">
+        <span class="readout only-url">MenuTag &middot;
+          <span class="mono">58.8&nbsp;&times;&nbsp;58.8&nbsp;mm</span> &middot;
+          spessore <span class="mono">3.0&nbsp;mm</span> &middot;
+          tag NFC: pausa allo strato <span class="mono">19/29</span></span>
+        <span class="readout only-logo">Coaster &middot;
+          <span class="mono">&Oslash;85&nbsp;mm</span> &middot;
+          spessore <span class="mono">4.0&nbsp;mm</span> &middot;
+          Coin Cart <span class="mono">&Oslash;25.75&nbsp;mm</span></span>
+      </div>
+
+      <!-- Targhetta MenuTag: base chiara, incisione scura (placeholder del viewer 3D) -->
+      <svg class="scene only-url" viewBox="0 0 340 400" aria-hidden="true">
+        <rect x="20" y="18" width="300" height="300" rx="28" fill="var(--text-primary)"/>
+        <rect x="26" y="24" width="288" height="288" rx="23" fill="none"
+              stroke="var(--text-secondary)" stroke-opacity=".5"/>
+        <g fill="var(--surface-0)">
+          <!-- Mirini del QR -->
+          <path fill-rule="evenodd" d="M65 48h70v70H65zM75 58h50v50H75z"/>
+          <rect x="85" y="68" width="30" height="30"/>
+          <path fill-rule="evenodd" d="M205 48h70v70h-70zM215 58h50v50h-50z"/>
+          <rect x="225" y="68" width="30" height="30"/>
+          <path fill-rule="evenodd" d="M65 188h70v70H65zM75 198h50v50H75z"/>
+          <rect x="85" y="208" width="30" height="30"/>
+          <!-- Blocchi dati (pattern stilizzato, deterministico) -->
+          <rect x="155" y="48" width="10" height="10"/><rect x="165" y="48" width="10" height="10"/><rect x="175" y="48" width="10" height="10"/>
+          <rect x="165" y="58" width="10" height="10"/><rect x="175" y="58" width="10" height="10"/><rect x="185" y="58" width="10" height="10"/>
+          <rect x="145" y="68" width="10" height="10"/><rect x="165" y="68" width="10" height="10"/><rect x="175" y="68" width="10" height="10"/>
+          <rect x="155" y="78" width="10" height="10"/><rect x="185" y="78" width="10" height="10"/><rect x="165" y="88" width="10" height="10"/>
+          <rect x="175" y="88" width="10" height="10"/><rect x="145" y="98" width="10" height="10"/><rect x="155" y="98" width="10" height="10"/>
+          <rect x="165" y="98" width="10" height="10"/><rect x="145" y="108" width="10" height="10"/><rect x="165" y="108" width="10" height="10"/>
+          <rect x="185" y="108" width="10" height="10"/><rect x="185" y="118" width="10" height="10"/><rect x="125" y="128" width="10" height="10"/>
+          <rect x="135" y="128" width="10" height="10"/><rect x="145" y="128" width="10" height="10"/><rect x="155" y="128" width="10" height="10"/>
+          <rect x="165" y="128" width="10" height="10"/><rect x="175" y="128" width="10" height="10"/><rect x="185" y="128" width="10" height="10"/>
+          <rect x="195" y="128" width="10" height="10"/><rect x="215" y="128" width="10" height="10"/><rect x="225" y="128" width="10" height="10"/>
+          <rect x="235" y="128" width="10" height="10"/><rect x="245" y="128" width="10" height="10"/><rect x="75" y="138" width="10" height="10"/>
+          <rect x="95" y="138" width="10" height="10"/><rect x="105" y="138" width="10" height="10"/><rect x="185" y="138" width="10" height="10"/>
+          <rect x="195" y="138" width="10" height="10"/><rect x="205" y="138" width="10" height="10"/><rect x="215" y="138" width="10" height="10"/>
+          <rect x="225" y="138" width="10" height="10"/><rect x="255" y="138" width="10" height="10"/><rect x="65" y="148" width="10" height="10"/>
+          <rect x="85" y="148" width="10" height="10"/><rect x="95" y="148" width="10" height="10"/><rect x="105" y="148" width="10" height="10"/>
+          <rect x="125" y="148" width="10" height="10"/><rect x="135" y="148" width="10" height="10"/><rect x="165" y="148" width="10" height="10"/>
+          <rect x="175" y="148" width="10" height="10"/><rect x="205" y="148" width="10" height="10"/><rect x="215" y="148" width="10" height="10"/>
+          <rect x="225" y="148" width="10" height="10"/><rect x="255" y="148" width="10" height="10"/><rect x="265" y="148" width="10" height="10"/>
+          <rect x="65" y="158" width="10" height="10"/><rect x="115" y="158" width="10" height="10"/><rect x="165" y="158" width="10" height="10"/>
+          <rect x="185" y="158" width="10" height="10"/><rect x="195" y="158" width="10" height="10"/><rect x="205" y="158" width="10" height="10"/>
+          <rect x="235" y="158" width="10" height="10"/><rect x="255" y="158" width="10" height="10"/><rect x="75" y="168" width="10" height="10"/>
+          <rect x="105" y="168" width="10" height="10"/><rect x="125" y="168" width="10" height="10"/><rect x="165" y="168" width="10" height="10"/>
+          <rect x="175" y="168" width="10" height="10"/><rect x="185" y="168" width="10" height="10"/><rect x="225" y="168" width="10" height="10"/>
+          <rect x="235" y="168" width="10" height="10"/><rect x="265" y="168" width="10" height="10"/><rect x="155" y="178" width="10" height="10"/>
+          <rect x="185" y="178" width="10" height="10"/><rect x="215" y="178" width="10" height="10"/><rect x="235" y="178" width="10" height="10"/>
+          <rect x="245" y="178" width="10" height="10"/><rect x="145" y="188" width="10" height="10"/><rect x="155" y="188" width="10" height="10"/>
+          <rect x="185" y="188" width="10" height="10"/><rect x="205" y="188" width="10" height="10"/><rect x="215" y="188" width="10" height="10"/>
+          <rect x="225" y="188" width="10" height="10"/><rect x="245" y="188" width="10" height="10"/><rect x="255" y="188" width="10" height="10"/>
+          <rect x="265" y="188" width="10" height="10"/><rect x="155" y="198" width="10" height="10"/><rect x="185" y="198" width="10" height="10"/>
+          <rect x="195" y="198" width="10" height="10"/><rect x="215" y="198" width="10" height="10"/><rect x="225" y="198" width="10" height="10"/>
+          <rect x="155" y="208" width="10" height="10"/><rect x="165" y="208" width="10" height="10"/><rect x="175" y="208" width="10" height="10"/>
+          <rect x="185" y="208" width="10" height="10"/><rect x="235" y="208" width="10" height="10"/><rect x="245" y="208" width="10" height="10"/>
+          <rect x="255" y="208" width="10" height="10"/><rect x="145" y="218" width="10" height="10"/><rect x="155" y="218" width="10" height="10"/>
+          <rect x="165" y="218" width="10" height="10"/><rect x="175" y="218" width="10" height="10"/><rect x="185" y="218" width="10" height="10"/>
+          <rect x="195" y="218" width="10" height="10"/><rect x="215" y="218" width="10" height="10"/><rect x="245" y="218" width="10" height="10"/>
+          <rect x="175" y="228" width="10" height="10"/><rect x="195" y="228" width="10" height="10"/><rect x="205" y="228" width="10" height="10"/>
+          <rect x="215" y="228" width="10" height="10"/><rect x="225" y="228" width="10" height="10"/><rect x="245" y="228" width="10" height="10"/>
+          <rect x="265" y="228" width="10" height="10"/><rect x="145" y="238" width="10" height="10"/><rect x="195" y="238" width="10" height="10"/>
+          <rect x="205" y="238" width="10" height="10"/><rect x="255" y="238" width="10" height="10"/><rect x="165" y="248" width="10" height="10"/>
+          <rect x="185" y="248" width="10" height="10"/><rect x="195" y="248" width="10" height="10"/><rect x="225" y="248" width="10" height="10"/>
+          <rect x="235" y="248" width="10" height="10"/><rect x="255" y="248" width="10" height="10"/>
+        </g>
+        <!-- URL inciso sotto il QR -->
+        <text x="170" y="298" text-anchor="middle" fill="var(--surface-0)"
+              font-family="var(--font-mono)" font-size="16">menu.damario.it</text>
+        <!-- Quota stile blueprint -->
+        <g stroke="var(--tech)" stroke-width="1">
+          <path d="M20 324v24M320 324v24" stroke-opacity=".5"/>
+          <path d="M20 342H320"/>
+          <path d="M20 342l8-4M20 342l8 4M320 342l-8-4M320 342l-8 4"/>
+        </g>
+        <text class="mono" x="170" y="334" text-anchor="middle" fill="currentColor"
+              font-size="14">58.8 mm</text>
+      </svg>
+
+      <!-- Coaster: base chiara, incisione scura, logo in attesa (variante documentale) -->
+      <svg class="scene only-logo" viewBox="0 0 340 400" aria-hidden="true">
+        <circle cx="170" cy="168" r="148" fill="var(--text-primary)"/>
+        <circle cx="170" cy="168" r="140" fill="none"
+                stroke="var(--text-secondary)" stroke-opacity=".5"/>
+        <circle cx="170" cy="168" r="118" fill="none"
+                stroke="var(--surface-0)" stroke-width="3" stroke-opacity=".9"/>
+        <circle cx="170" cy="168" r="78" fill="none" stroke="var(--surface-0)"
+                stroke-opacity=".45" stroke-width="2" stroke-dasharray="8 8"/>
+        <g fill="none" stroke="var(--surface-0)" stroke-opacity=".5" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+          <rect x="148" y="126" width="44" height="36" rx="4"/>
+          <circle cx="161" cy="138" r="4"/>
+          <path d="M148 156l12-11 9 8 12-13 11 16"/>
+        </g>
+        <text x="170" y="196" text-anchor="middle" fill="var(--surface-0)" fill-opacity=".6"
+              font-family="var(--font-sans)" font-size="13" font-weight="600"
+              letter-spacing="3">IL TUO LOGO</text>
+        <g stroke="var(--tech)" stroke-width="1">
+          <path d="M22 324v24M318 324v24" stroke-opacity=".5"/>
+          <path d="M22 342H318"/>
+          <path d="M22 342l8-4M22 342l8 4M318 342l-8-4M318 342l-8 4"/>
+        </g>
+        <text class="mono" x="170" y="334" text-anchor="middle" fill="currentColor"
+              font-size="14">&Oslash;85 mm</text>
+      </svg>
+    </div>
+
+    <p class="viewer-caption">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 1 2 8h4l-1 5 7-8H8l1-4z"/>
+      </svg>
+      <span class="only-url">L'anteprima si aggiorna mentre scrivi — senza chiamate al server.</span>
+      <span class="only-logo">L'anteprima si aggiorna appena carichi il file — senza chiamate al server.</span>
+    </p>
+  </section>
+</main>
+
+<footer class="shell page-note">
+  Mockup statico — Fase 0 del restyle «Cyber-Maker Studio». Colori, raggi e durate
+  provengono esclusivamente da <code>docs/design/tokens.md</code> §8; i testi seguono
+  <code>docs/design/glossario.md</code>. Il viewer è un placeholder: nel prodotto è il
+  canvas three.js esistente (contratto 04).
+</footer>
+
+<script>
+/* Micro-JS documentale: alterna le due varianti del Passo 2 (URL / logo). */
+document.querySelectorAll('.variant-tab').forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    document.body.dataset.variant = tab.dataset.variant;
+    document.querySelectorAll('.variant-tab').forEach(function (t) {
+      t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+    });
+  });
+});
+</script>
+</body>
+</html>

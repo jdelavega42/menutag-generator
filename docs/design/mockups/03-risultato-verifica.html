@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MenuTag Studio — Risultato e verifica di stampa (mockup Fase 0)</title>
+<style>
+/* ============================================================
+   BLOCCO CSS CANONICO — docs/design/tokens.md §8 (verbatim)
+   ============================================================ */
+:root {
+  --surface-0:#0B0F14; --surface-1:#11161D; --surface-2:#171E27; --surface-3:#1E2631;
+  --border-subtle:#232C38; --border-strong:#33404F;
+  --text-primary:#E8EDF2; --text-secondary:#A7B2BE; --text-muted:#7B8A99;
+  --accent:#FF7A1A; --accent-ink:#161006; --tech:#2FD4E6;
+  --ok:#4ADE80; --warn:#FBBF24; --blocked:#F98080;
+  --ok-surface:#122117; --warn-surface:#231D0E; --blocked-surface:#231314;
+  --grid-line:rgba(47,212,230,.06);
+  --font-sans:'Instrument Sans', ui-sans-serif, system-ui;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --r-control:6px; --r-card:10px; --r-panel:12px;
+  --t-micro:140ms; --t-panel:200ms; --ease:cubic-bezier(.2,0,0,1);
+}
+body { background:var(--surface-0); color:var(--text-primary);
+       font-family:var(--font-sans); font-size:14px; line-height:1.55; }
+.mono { font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+        color:var(--tech); }
+.blueprint { background-image:
+  linear-gradient(var(--grid-line) 1px, transparent 1px),
+  linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:24px 24px; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration:0ms !important; animation:none !important; }
+}
+/* ============================================================
+   FINE BLOCCO CANONICO — da qui in poi solo var(--token)
+   ============================================================ */
+
+* { margin:0; padding:0; box-sizing:border-box; }
+a { color:var(--tech); text-decoration:none; }
+a:hover { text-decoration:underline; }
+:focus-visible { outline:2px solid var(--border-strong); outline-offset:2px; }
+
+/* ---------- Nav comune ---------- */
+.nav {
+  display:flex; align-items:center; gap:32px;
+  height:58px; padding:0 24px;
+  background:var(--surface-1);
+  border-bottom:1px solid var(--border-subtle);
+}
+.brand { display:flex; align-items:center; gap:10px; font-size:16px; font-weight:600; color:var(--text-primary); }
+.brand:hover { text-decoration:none; }
+.brand svg { display:block; }
+.nav-links { display:flex; gap:24px; font-size:14px; font-weight:500; }
+.nav-links a { color:var(--text-secondary); padding:4px 0; transition:color var(--t-micro) var(--ease); }
+.nav-links a:hover { color:var(--text-primary); text-decoration:none; }
+.nav-links a[aria-current="page"] { color:var(--text-primary); box-shadow:inset 0 -2px 0 var(--accent); }
+.nav-auth { margin-left:auto; display:flex; align-items:center; gap:14px; font-size:14px; }
+.nav-auth .sep { color:var(--text-muted); }
+.nav-auth a { color:var(--text-secondary); font-weight:500; transition:color var(--t-micro) var(--ease); }
+.nav-auth a:hover { color:var(--text-primary); text-decoration:none; }
+
+/* ---------- Struttura pagina (desktop 1280) ---------- */
+.wrap { max-width:1280px; margin:0 auto; padding:20px 24px 40px; }
+.page-head { display:flex; align-items:baseline; justify-content:space-between; gap:24px; margin-bottom:16px; }
+.page-head h1 { font-size:22px; font-weight:600; }
+.page-head .sub { font-size:13px; color:var(--text-muted); }
+
+.stepper { display:flex; align-items:center; gap:8px; list-style:none; font-size:13px; }
+.stepper li { display:flex; align-items:center; gap:8px; color:var(--text-muted); font-weight:500; white-space:nowrap; }
+.stepper li + li::before { content:""; width:20px; height:1px; background:var(--border-strong); }
+.step-dot {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:20px; height:20px; border-radius:999px; font-size:12px;
+  border:1px solid var(--border-strong); color:var(--text-secondary);
+}
+.stepper .done .step-dot { color:var(--ok); border-color:var(--border-strong); }
+.stepper .done { color:var(--text-secondary); }
+.stepper .active { color:var(--text-primary); }
+.stepper .active .step-dot { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+
+/* Il viewer occupa ~62% della larghezza utile (>= 50%) */
+.layout { display:grid; grid-template-columns:minmax(0,1fr) 432px; gap:20px; align-items:start; }
+
+/* ---------- Viewer 3D (placeholder) ---------- */
+.viewer {
+  position:relative;
+  background-color:var(--surface-1);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--r-panel);
+  min-height:592px;
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.viewer-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border-subtle);
+  /* la griglia blueprint resta solo nel viewport: la barra la copre */
+  background:var(--surface-1);
+}
+.viewer-views { display:flex; gap:6px; }
+.view-chip {
+  font:inherit; font-size:13px; font-weight:500; color:var(--text-secondary);
+  background:var(--surface-2); border:1px solid var(--border-subtle);
+  border-radius:var(--r-control); padding:5px 12px; cursor:pointer;
+  transition:background var(--t-micro) var(--ease), border-color var(--t-micro) var(--ease), color var(--t-micro) var(--ease);
+}
+.view-chip:hover { background:var(--surface-3); color:var(--text-primary); }
+.view-chip[aria-pressed="true"] { border-color:var(--accent); color:var(--text-primary); }
+.viewer-bar .hint { font-size:12px; color:var(--text-muted); }
+
+.stage { position:relative; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+.stage svg { display:block; max-width:100%; height:auto; }
+.dim-label { margin-top:2px; font-size:13px; }
+
+.readout {
+  position:absolute; display:inline-flex; align-items:center; gap:6px;
+  font-size:12px; color:var(--text-secondary);
+  background:var(--surface-2); border:1px solid var(--border-subtle);
+  border-radius:var(--r-control); padding:4px 10px;
+}
+.readout .mono { font-size:12px; }
+.ro-tl { top:14px; left:14px; }
+.ro-tr { top:14px; right:14px; }
+.ro-bl { bottom:14px; left:14px; }
+.ro-br { bottom:14px; right:14px; }
+
+/* ---------- Colonna destra ---------- */
+.side { display:flex; flex-direction:column; gap:16px; }
+
+.panel {
+  background:var(--surface-1); border:1px solid var(--border-subtle);
+  border-radius:var(--r-panel); padding:20px;
+}
+.panel h2 { font-size:16px; font-weight:600; margin-bottom:14px; }
+
+.badge-ok {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:14px; font-weight:600; color:var(--ok);
+  background:var(--ok-surface);
+  /* bordo derivato di --ok (#4ADE80) al 30%, via color-mix: nessun hex nuovo */
+  border:1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  border-radius:999px; padding:7px 14px;
+}
+.badge-ok .dot { width:8px; height:8px; border-radius:999px; background:var(--ok); }
+
+.verify-phrase { margin-top:12px; font-size:14px; color:var(--text-secondary); }
+
+.nfc-row {
+  display:flex; gap:10px; align-items:flex-start;
+  margin-top:14px; padding:12px 14px;
+  background:var(--surface-2); border:1px solid var(--border-subtle);
+  border-radius:var(--r-card); font-size:13px; color:var(--text-secondary);
+}
+.nfc-row svg { flex:none; margin-top:2px; }
+
+details.tech { margin-top:14px; border-top:1px solid var(--border-subtle); padding-top:12px; }
+details.tech summary {
+  cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
+  font-size:13px; font-weight:500; color:var(--text-secondary);
+  transition:color var(--t-micro) var(--ease);
+}
+details.tech summary:hover { color:var(--text-primary); }
+details.tech summary::-webkit-details-marker { display:none; }
+details.tech summary::before {
+  content:""; width:0; height:0;
+  border-left:5px solid currentColor; border-top:4px solid transparent; border-bottom:4px solid transparent;
+  transition:transform var(--t-micro) var(--ease);
+}
+details.tech[open] summary::before { transform:rotate(90deg); }
+.tech-list { margin-top:10px; display:grid; grid-template-columns:1fr auto; row-gap:6px; column-gap:16px; font-size:13px; }
+.tech-list dt { color:var(--text-muted); }
+.tech-list dd { text-align:right; }
+
+/* ---------- CTA ---------- */
+.cta-col { display:flex; flex-direction:column; gap:10px; }
+.btn {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  border-radius:var(--r-control); padding:12px 20px; width:100%;
+  transition:background var(--t-micro) var(--ease), filter var(--t-micro) var(--ease), border-color var(--t-micro) var(--ease);
+}
+.btn-primary { background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent); }
+.btn-primary:hover { filter:brightness(1.07); }
+.btn-secondary { background:var(--surface-2); color:var(--text-primary); border:1px solid var(--border-strong); }
+.btn-secondary:hover { background:var(--surface-3); }
+
+/* ---------- Card registrazione ---------- */
+.register { background:var(--surface-1); border:1px solid var(--border-subtle); border-radius:var(--r-card); padding:18px 20px; }
+.register h3 { font-size:14px; font-weight:600; margin-bottom:6px; }
+.register p { font-size:13px; color:var(--text-secondary); margin-bottom:12px; }
+.register .row { display:flex; align-items:center; gap:14px; }
+.btn-outline {
+  font:inherit; font-size:13px; font-weight:600; cursor:pointer;
+  background:transparent; color:var(--text-primary);
+  border:1px solid var(--border-strong); border-radius:var(--r-control);
+  padding:8px 16px;
+  transition:background var(--t-micro) var(--ease);
+}
+.btn-outline:hover { background:var(--surface-2); }
+.register .row a { font-size:13px; }
+
+.retention { font-size:12px; color:var(--text-muted); text-align:center; }
+.retention .mono { font-size:12px; }
+</style>
+</head>
+<body>
+
+<!-- ============ Nav comune ============ -->
+<header class="nav">
+  <a class="brand" href="#">
+    <!-- quadratino brand: eco dell'intarsio bicolore (accent + accent-ink) -->
+    <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+      <rect width="22" height="22" rx="5" fill="var(--accent)"/>
+      <g fill="var(--accent-ink)">
+        <rect x="4" y="4" width="5" height="5" rx="1"/>
+        <rect x="13" y="4" width="5" height="5" rx="1"/>
+        <rect x="4" y="13" width="5" height="5" rx="1"/>
+        <rect x="13" y="13" width="2" height="2"/>
+        <rect x="16" y="16" width="2" height="2"/>
+        <rect x="13" y="16" width="2" height="2" opacity=".55"/>
+      </g>
+    </svg>
+    MenuTag Studio
+  </a>
+  <nav class="nav-links" aria-label="Principale">
+    <a href="#" aria-current="page">Configuratore</a>
+  </nav>
+  <div class="nav-auth">
+    <a href="#">Accedi</a><span class="sep" aria-hidden="true">/</span><a href="#">Registrati</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="page-head">
+    <div>
+      <h1>Il tuo MenuTag è pronto</h1>
+      <p class="sub">Creato dai valori del preset e verificato prima del download.</p>
+    </div>
+    <ol class="stepper" aria-label="Avanzamento">
+      <li class="done"><span class="step-dot" aria-hidden="true">✓</span>Scegli il formato</li>
+      <li class="done"><span class="step-dot" aria-hidden="true">✓</span>L’indirizzo del tuo menù</li>
+      <li class="active"><span class="step-dot" aria-hidden="true">3</span>Crea e scarica</li>
+    </ol>
+  </div>
+
+  <div class="layout">
+
+    <!-- ============ Viewer 3D — placeholder del pezzo reale ============ -->
+    <section class="viewer" aria-label="Anteprima 3D della targhetta generata">
+      <div class="viewer-bar">
+        <div class="viewer-views" role="group" aria-label="Punto di vista">
+          <button type="button" class="view-chip" aria-pressed="true">Fronte</button>
+          <button type="button" class="view-chip" aria-pressed="false">Retro</button>
+          <button type="button" class="view-chip" aria-pressed="false">Libera</button>
+        </div>
+        <span class="hint">Anteprima dalla geometria reale · trascina per ruotare</span>
+      </div>
+
+      <div class="stage blueprint">
+        <!-- Targhetta stilizzata: base chiara + incisione scura (i due colori del pezzo) -->
+        <svg width="460" height="404" viewBox="0 0 460 404" role="img"
+             aria-label="Targhetta MenuTag quadrata con angoli smussati e QR inciso">
+          <!-- ombra d'appoggio: usa l'ombra di elevazione dei token (§6) resa con token + opacità -->
+          <ellipse cx="230" cy="362" rx="150" ry="12" fill="var(--surface-0)" opacity=".7"/>
+
+          <!-- base chiara della targhetta -->
+          <rect x="70" y="30" width="320" height="320" rx="28" fill="var(--text-primary)"/>
+          <!-- smusso del bordo: traccia derivata dalla base scura, resa con token + stroke-opacity -->
+          <rect x="75" y="35" width="310" height="310" rx="24" fill="none"
+                stroke="var(--surface-0)" stroke-opacity=".14" stroke-width="2"/>
+
+          <!-- incisione: pattern QR a blocchi (secondo colore del pezzo) -->
+          <g fill="var(--surface-0)">
+            <!-- mirini del QR: anello pieno + cuore -->
+            <path d="M100 60h91v91h-91z M113 73v65h65V73z" fill-rule="evenodd"/>
+            <rect x="126" y="86" width="39" height="39" rx="4"/>
+            <path d="M269 60h91v91h-91z M282 73v65h65V73z" fill-rule="evenodd"/>
+            <rect x="295" y="86" width="39" height="39" rx="4"/>
+            <path d="M100 229h91v91h-91z M113 242v65h65V242z" fill-rule="evenodd"/>
+            <rect x="126" y="255" width="39" height="39" rx="4"/>
+            <!-- moduli dati -->
+            <path d="M204 60h26v13h-26zM243 60h13v13h-13zM217 73h26v13h-26zM204 86h52v13h-52zM204 99h13v13h-13zM230 99h26v13h-26zM243 112h13v13h-13zM217 125h13v13h-13zM243 125h13v13h-13zM204 138h39v13h-39zM204 151h13v13h-13zM243 151h13v13h-13zM113 164h39v13h-39zM165 164h26v13h-26zM204 164h26v13h-26zM256 164h13v13h-13zM321 164h13v13h-13zM347 164h13v13h-13zM100 177h13v13h-13zM126 177h13v13h-13zM152 177h13v13h-13zM217 177h13v13h-13zM269 177h13v13h-13zM334 177h13v13h-13zM139 190h26v13h-26zM178 190h65v13h-65zM256 190h39v13h-39zM308 190h26v13h-26zM126 203h39v13h-39zM191 203h52v13h-52zM269 203h52v13h-52zM243 216h13v13h-13zM308 216h39v13h-39zM204 229h143v13h-143zM217 242h65v13h-65zM308 242h13v13h-13zM334 242h26v13h-26zM204 255h26v13h-26zM243 255h26v13h-26zM295 255h13v13h-13zM321 255h13v13h-13zM230 268h39v13h-39zM308 268h26v13h-26zM256 281h13v13h-13zM282 281h65v13h-65zM217 294h13v13h-13zM269 294h65v13h-65zM256 307h13v13h-13zM334 307h13v13h-13z"/>
+          </g>
+
+          <!-- annotazione blueprint: sede del tag NFC (nascosta nel pezzo) -->
+          <circle cx="230" cy="190" r="68" fill="none" stroke="var(--tech)"
+                  stroke-opacity=".5" stroke-width="1.5" stroke-dasharray="6 6"/>
+
+          <!-- quota inferiore: linea di misura in stile disegno tecnico -->
+          <g stroke="var(--tech)" stroke-opacity=".85" stroke-width="1">
+            <line x1="70" y1="380" x2="390" y2="380"/>
+            <line x1="70" y1="373" x2="70" y2="387"/>
+            <line x1="390" y1="373" x2="390" y2="387"/>
+          </g>
+        </svg>
+        <p class="dim-label"><span class="mono">58.8 × 58.8 mm</span></p>
+
+        <span class="readout ro-tl">Tag NFC <span class="mono">Ø 25 mm</span></span>
+        <span class="readout ro-tr">Spessore <span class="mono">3.0 mm</span></span>
+        <span class="readout ro-bl">Resa: incisa</span>
+        <span class="readout ro-br">Strato <span class="mono">19/29</span></span>
+      </div>
+    </section>
+
+    <!-- ============ Pannello risultato ============ -->
+    <aside class="side">
+
+      <section class="panel" aria-label="Verifica di stampa">
+        <h2>Verifica di stampa</h2>
+
+        <p class="badge-ok"><span class="dot" aria-hidden="true"></span>Verificato: pronto per la stampa</p>
+
+        <p class="verify-phrase">Il QR è stato letto dalla geometria reale: si scansiona.</p>
+
+        <div class="nfc-row">
+          <!-- icona pausa -->
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" fill="var(--text-secondary)">
+            <rect x="2" y="1" width="4" height="12" rx="1"/>
+            <rect x="8" y="1" width="4" height="12" rx="1"/>
+          </svg>
+          <span>Pausa per inserire il tag NFC: dopo lo strato <span class="mono">19</span> (quota <span class="mono">2.00 mm</span>)</span>
+        </div>
+
+        <details class="tech">
+          <summary>Dettagli tecnici</summary>
+          <dl class="tech-list">
+            <dt>Dettaglio minimo</dt><dd><span class="mono">0.42 mm</span></dd>
+            <dt>Ingombro</dt><dd><span class="mono">58.8 × 58.8 × 3.0 mm</span></dd>
+            <dt>Peso stimato</dt><dd><span class="mono">12.4 g</span></dd>
+            <dt>Moduli QR</dt><dd><span class="mono">29 × 29</span></dd>
+            <dt>Residuo di incisione</dt><dd><span class="mono">0.06 mm</span></dd>
+            <dt>Facce del modello</dt><dd><span class="mono">18 432</span></dd>
+          </dl>
+        </details>
+      </section>
+
+      <div class="cta-col">
+        <button type="button" class="btn btn-primary">Scarica il file di stampa (STL)</button>
+        <button type="button" class="btn btn-secondary">Guida per chi stampa</button>
+      </div>
+
+      <section class="register" aria-label="Salva il modello">
+        <h3>Salva questo modello nel tuo archivio</h3>
+        <p>Registrandoti lo ritrovi quando vuoi, lo duplichi per altri tavoli e tieni loghi e QR pronti al riuso. I modelli creati da ospite ti seguiranno.</p>
+        <div class="row">
+          <button type="button" class="btn-outline">Registrati</button>
+          <a href="#">Scopri lo Studio completo</a>
+        </div>
+      </section>
+
+      <p class="retention">I file dei visitatori restano disponibili per <span class="mono">24 ore</span>.</p>
+
+    </aside>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,145 +1,157 @@
 {{--
-    Printability report (spec §8.8): outcome, full/void detail, first-perimeter
-    residue, QR decode. On `blocked` the download STAYS available, behind an
-    explicit warning: the user decides, informed.
+    «Verifica di stampa» (spec §8.8, glossario.md, mockup 03): a semaforo
+    with one human sentence per outcome, the NFC pause humanized, and every
+    number demoted to a CLOSED «Dettagli tecnici» block in mono. On `blocked`
+    the download STAYS available behind an explicit warning: the user
+    decides, informed.
 --}}
-<section aria-label="Report di stampabilità">
+<section aria-label="Verifica di stampa">
     @if ($this->hasReport())
-        @php($printability = $this->printability())
-        <div class="rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-800">
-            <div class="flex items-center justify-between gap-3">
-                <flux:heading size="lg" level="2">Report di stampabilità</flux:heading>
-                @if ($printability === 'ok')
-                    <flux:badge color="lime">Esito: OK</flux:badge>
-                @elseif ($printability === 'warn')
-                    <flux:badge color="amber">Esito: con avvisi</flux:badge>
-                @elseif ($printability === 'blocked')
-                    <flux:badge color="red">Esito: critico</flux:badge>
-                @else
-                    <flux:badge color="zinc">Esito non disponibile</flux:badge>
+        @php($outcome = $this->outcome())
+        <div class="space-y-4">
+            <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+                <flux:heading size="lg" level="2">Verifica di stampa</flux:heading>
+
+                {{-- Semaforo badge: full color on text/icon only, -surface behind (tokens §3) --}}
+                <p
+                    @class([
+                        'mt-3.5 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold',
+                        'border-ok/30 bg-ok-surface text-ok' => $outcome['tone'] === 'ok',
+                        'border-warn/30 bg-warn-surface text-warn' => $outcome['tone'] === 'warn',
+                        'border-blocked/30 bg-blocked-surface text-blocked' => $outcome['tone'] === 'blocked',
+                        'border-border-strong bg-surface-2 text-text-secondary' => $outcome['tone'] === 'muted',
+                    ])
+                >
+                    <span
+                        @class([
+                            'size-2 rounded-full',
+                            'bg-ok' => $outcome['tone'] === 'ok',
+                            'bg-warn' => $outcome['tone'] === 'warn',
+                            'bg-blocked' => $outcome['tone'] === 'blocked',
+                            'bg-text-muted' => $outcome['tone'] === 'muted',
+                        ])
+                        aria-hidden="true"
+                    ></span>
+                    {{ $outcome['title'] }}
+                </p>
+
+                <p class="mt-3 text-sm text-text-secondary">{{ $outcome['phrase'] }}</p>
+
+                {{-- One human sentence per engine warning (glossario.md) --}}
+                @if ($this->warnings() !== [])
+                    <ul class="mt-3 space-y-1.5">
+                        @foreach ($this->warnings() as $warning)
+                            <li wire:key="report-warning-{{ $loop->index }}" class="flex gap-2 text-sm text-text-secondary">
+                                <span class="mt-px flex-none font-semibold {{ $outcome['tone'] === 'blocked' ? 'text-blocked' : 'text-warn' }}" aria-hidden="true">⚠</span>
+                                {{ $this->humanizeWarning($warning) }}
+                            </li>
+                        @endforeach
+                    </ul>
                 @endif
+
+                {{-- NFC pause, humanized: numbers in mono (glossario.md) --}}
+                @if ($this->value('PAUSE_LAYER') !== null)
+                    <div class="mt-3.5 flex items-start gap-2.5 rounded-card border border-border-subtle bg-surface-2 px-3.5 py-3 text-sm text-text-secondary">
+                        <svg class="mt-0.5 size-3.5 flex-none" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                            <rect x="2" y="1" width="4" height="12" rx="1" />
+                            <rect x="8" y="1" width="4" height="12" rx="1" />
+                        </svg>
+                        <span>
+                            Pausa per inserire il tag NFC: dopo lo strato
+                            <span class="mono">{{ $this->value('PAUSE_LAYER') }}</span>
+                            (quota <span class="mono">{{ $this->value('PAUSE_Z') }} mm</span>)
+                        </span>
+                    </div>
+                @endif
+
+                {{-- Every number survives as secondary detail, closed by default --}}
+                <details class="mt-3.5 border-t border-border-subtle pt-3">
+                    <summary class="cursor-pointer text-sm font-medium text-text-secondary transition-colors duration-[var(--t-micro)] hover:text-text-primary">
+                        Dettagli tecnici
+                    </summary>
+                    <dl class="mt-2.5 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-sm">
+                        @if ($this->value('FEATURE_MIN_MM') !== null)
+                            <dt class="text-text-muted">Dettaglio minimo (pieno)</dt>
+                            <dd class="mono text-right">{{ $this->value('FEATURE_MIN_MM') }} mm</dd>
+                        @endif
+                        @if ($this->value('VOID_MIN_MM') !== null)
+                            <dt class="text-text-muted">Dettaglio minimo (vuoto)</dt>
+                            <dd class="mono text-right">{{ $this->value('VOID_MIN_MM') }} mm</dd>
+                        @endif
+                        @if ($this->value('FEATURE_LOSS_PCT') !== null)
+                            <dt class="text-text-muted">Area a rischio</dt>
+                            <dd class="mono text-right">{{ $this->value('FEATURE_LOSS_PCT') }} %</dd>
+                        @endif
+                        @if ($this->value('PERIMETER_RESIDUE_PCT') !== null)
+                            <dt class="text-text-muted">Residuo dopo il primo contorno</dt>
+                            <dd class="mono text-right">
+                                {{ $this->value('PERIMETER_RESIDUE_PCT') }} %@if ($this->value('PERIMETER_RESIDUE_WIDTH_MM') !== null) ({{ $this->value('PERIMETER_RESIDUE_WIDTH_MM') }} mm)@endif
+                            </dd>
+                        @endif
+                        @if ($this->value('QR_DECODED') !== null)
+                            <dt class="text-text-muted">Decodifica del QR</dt>
+                            <dd class="text-right {{ $this->value('QR_DECODED') === 'yes' ? 'text-ok' : 'text-blocked' }}">
+                                {{ $this->value('QR_DECODED') === 'yes' ? 'Riuscita' : 'NON riuscita' }}@if ($this->value('QR_VERSION') !== null) · <span class="mono">v{{ $this->value('QR_VERSION') }}</span>@endif @if ($this->value('QR_PITCH_MM') !== null) · modulo <span class="mono">{{ $this->value('QR_PITCH_MM') }} mm</span>@endif
+                            </dd>
+                        @endif
+                        @if ($this->value('WEIGHT_G') !== null)
+                            <dt class="text-text-muted">Peso (solido pieno)</dt>
+                            <dd class="mono text-right">{{ $this->value('WEIGHT_G') }} g</dd>
+                        @endif
+                        @if ($this->value('BICOLOR_LAYERS') !== null)
+                            <dt class="text-text-muted">Strati a due colori</dt>
+                            <dd class="mono text-right">{{ $this->value('BICOLOR_LAYERS') }}</dd>
+                        @endif
+                        @if ($this->value('CAPACITY_ML') !== null)
+                            <dt class="text-text-muted">Capacità dell'incavo</dt>
+                            <dd class="mono text-right">{{ $this->value('CAPACITY_ML') }} ml</dd>
+                        @endif
+                        @if ($this->value('TRIANGLES') !== null)
+                            <dt class="text-text-muted">Facce del modello</dt>
+                            <dd class="mono text-right">{{ $this->value('TRIANGLES') }}</dd>
+                        @endif
+                    </dl>
+                </details>
             </div>
 
-            <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                @if ($this->value('FEATURE_MIN_MM') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Dettaglio minimo (pieno)</dt>
-                        <dd>{{ $this->value('FEATURE_MIN_MM') }} mm</dd>
-                    </div>
-                @endif
-                @if ($this->value('VOID_MIN_MM') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Dettaglio minimo (vuoto)</dt>
-                        <dd>{{ $this->value('VOID_MIN_MM') }} mm</dd>
-                    </div>
-                @endif
-                @if ($this->value('FEATURE_LOSS_PCT') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Area a rischio</dt>
-                        <dd>{{ $this->value('FEATURE_LOSS_PCT') }} %</dd>
-                    </div>
-                @endif
-                @if ($this->value('PERIMETER_RESIDUE_PCT') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Residuo dopo il primo perimetro</dt>
-                        <dd>
-                            {{ $this->value('PERIMETER_RESIDUE_PCT') }} %
-                            @if ($this->value('PERIMETER_RESIDUE_WIDTH_MM') !== null)
-                                ({{ $this->value('PERIMETER_RESIDUE_WIDTH_MM') }} mm)
-                            @endif
-                        </dd>
-                    </div>
-                @endif
-                @if ($this->value('QR_DECODED') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Decodifica del QR</dt>
-                        <dd class="{{ $this->value('QR_DECODED') === 'yes' ? 'text-lime-700 dark:text-lime-300' : 'text-red-700 dark:text-red-300' }}">
-                            {{ $this->value('QR_DECODED') === 'yes' ? 'Riuscita' : 'NON riuscita' }}
-                            @if ($this->value('QR_VERSION') !== null)
-                                · v{{ $this->value('QR_VERSION') }}
-                            @endif
-                            @if ($this->value('QR_PITCH_MM') !== null)
-                                · modulo {{ $this->value('QR_PITCH_MM') }} mm
-                            @endif
-                        </dd>
-                    </div>
-                @endif
-                @if ($this->value('TRIANGLES') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Triangoli</dt>
-                        <dd>{{ $this->value('TRIANGLES') }}</dd>
-                    </div>
-                @endif
-                @if ($this->value('WEIGHT_G') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Peso (solido pieno)</dt>
-                        <dd>{{ $this->value('WEIGHT_G') }} g</dd>
-                    </div>
-                @endif
-                @if ($this->value('BICOLOR_LAYERS') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Layer bicromatici</dt>
-                        <dd>{{ $this->value('BICOLOR_LAYERS') }}</dd>
-                    </div>
-                @endif
-                @if ($this->value('CAPACITY_ML') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Capacità dell'incavo</dt>
-                        <dd>{{ $this->value('CAPACITY_ML') }} ml</dd>
-                    </div>
-                @endif
-                @if ($this->value('PAUSE_LAYER') !== null)
-                    <div>
-                        <dt class="text-zinc-500 dark:text-zinc-400">Pausa NFC</dt>
-                        <dd>dopo il layer {{ $this->value('PAUSE_LAYER') }} (Z = {{ $this->value('PAUSE_Z') }} mm)</dd>
-                    </div>
-                @endif
-            </dl>
-
-            @if ($this->warnings() !== [])
-                <ul class="mt-4 space-y-1 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
-                    @foreach ($this->warnings() as $warning)
-                        <li wire:key="report-warning-{{ $loop->index }}">⚠ {{ $warning }}</li>
-                    @endforeach
-                </ul>
-            @endif
-
-            @if ($printability === 'blocked')
-                <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-100">
-                    <p class="font-semibold">Attenzione: il report segnala problemi critici.</p>
-                    <p class="mt-1">
-                        Oltre il 10&nbsp;% dell'area grafica rischia di non essere riprodotta, oppure il QR
-                        prodotto non è stato decodificato. Il download resta possibile — decidi tu, informato —
-                        ma il pezzo stampato potrebbe non essere leggibile o vendibile così com'è.
-                    </p>
-                </div>
-            @endif
-
-            <div class="mt-4 flex flex-wrap gap-2">
+            {{-- CTA column (mockup 03) --}}
+            <div class="flex flex-col gap-2.5">
                 @if ($stlUrl !== null)
-                    <flux:button :href="$stlUrl" variant="primary" size="sm">
-                        Scarica STL{{ $accentStlUrl !== null ? ' (corpo base)' : '' }}
+                    <flux:button :href="$stlUrl" variant="primary" class="w-full">
+                        Scarica il file di stampa (STL){{ $accentStlUrl !== null ? ' — corpo base' : '' }}
                     </flux:button>
                 @endif
                 @if ($accentStlUrl !== null)
-                    <flux:button :href="$accentStlUrl" variant="filled" size="sm">
-                        Scarica STL accento (intarsio)
+                    <flux:button :href="$accentStlUrl" variant="filled" class="w-full">
+                        Scarica il secondo colore (accento)
                     </flux:button>
                 @endif
                 @if ($printGuideUrl !== null)
-                    <flux:button :href="$printGuideUrl" variant="ghost" size="sm">
-                        Guida di stampa (Markdown)
+                    <flux:button :href="$printGuideUrl" variant="filled" class="w-full">
+                        Guida per chi stampa
                     </flux:button>
                 @endif
             </div>
 
-            @auth
-            @else
-                <p class="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-                    I link di download degli ospiti sono firmati e scadono dopo
-                    {{ (int) config('product.guests.retention_hours') }} ore, insieme al file.
+            @guest
+                {{-- Contextual registration CTA at the point of maximum interest (§5.1) --}}
+                <aside class="rounded-card border border-border-subtle bg-surface-1 p-4" aria-label="Salva il modello">
+                    <h3 class="text-sm font-semibold text-text-primary">Salva questo modello nel tuo archivio</h3>
+                    <p class="mt-1 text-sm text-text-secondary">
+                        Registrandoti lo ritrovi quando vuoi, lo duplichi per altri tavoli e
+                        tieni loghi e QR pronti al riuso. I modelli creati da ospite ti seguiranno.
+                    </p>
+                    <div class="mt-3 flex items-center gap-4">
+                        <flux:button :href="route('register')" variant="primary" size="sm">Registrati</flux:button>
+                        <a href="{{ route('studio-promo') }}" class="text-sm font-medium text-tech hover:underline" wire:navigate>Scopri lo Studio completo</a>
+                    </div>
+                </aside>
+
+                <p class="text-center text-xs text-text-muted">
+                    I file dei visitatori restano disponibili per
+                    <span class="mono text-xs">{{ (int) config('product.guests.retention_hours') }} ore</span>.
                 </p>
-            @endauth
+            @endguest
         </div>
     @endif
 </section>
