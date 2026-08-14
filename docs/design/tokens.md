@@ -16,7 +16,7 @@ Scala blu-carbone (non nero puro): la gerarchia si legge per elevazione.
 | `--surface-2` | `#171E27` | card, controlli, input | +2, il livello interattivo |
 | `--surface-3` | `#1E2631` | hover, riga attiva | +3, feedback immediato |
 | `--border-subtle` | `#232C38` | bordi di pannelli e card | in dark i bordi valgono più delle ombre |
-| `--border-strong` | `#33404F` | bordi di input e focus ring di base | separa l'interattivo dal decorativo |
+| `--border-strong` | `#33404F` | bordi di input | separa l'interattivo dal decorativo; **non** per il focus ring (1.82:1 su surface-0, sotto il 3:1 non-text — audit R-5): il focus usa `--accent` |
 | `--text-primary` | `#E8EDF2` | testo principale | ~15:1 su surface-0 |
 | `--text-secondary` | `#A7B2BE` | testo di supporto | ~7.5:1 |
 | `--text-muted` | `#7B8A99` | didascalie, placeholder | 4.74:1 anche su surface-2 (gli input), AA ovunque |
@@ -27,7 +27,7 @@ L'eco dell'intarsio bicolore del prodotto: due colori, ciascuno con un compito.
 
 | Token | Hex | Ruolo esclusivo | Perché |
 |---|---|---|---|
-| `--accent` | `#FF7A1A` | **azione**: CTA primarie, generazione, progresso | arancio industriale (banco CNC, Fusion 360); ~7.2:1 su surface-0 |
+| `--accent` | `#FF7A1A` | **azione**: CTA primarie, generazione, progresso, focus ring (`:focus-visible` e input) | arancio industriale (banco CNC, Fusion 360); ~7.2:1 su surface-0 |
 | `--accent-ink` | `#161006` | testo sopra `--accent` | ≥7:1 sull'arancio |
 | `--tech` | `#2FD4E6` | **dato**: misure, readout, griglia blueprint, valori mono | ciano da blueprint; ~10:1 su surface-0 |
 

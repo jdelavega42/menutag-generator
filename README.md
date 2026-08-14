@@ -1,15 +1,18 @@
-# MenuTag Generator
+# MenuTag Studio
 
-> **English summary** — MenuTag Generator is a Laravel 13 + Livewire 4 web app
-> that lets restaurants and resellers configure and download 3D-printable
-> "menu tags": rigid coaster-shaped table tags that open the venue's digital
-> menu via an engraved QR code and/or an embedded NFC tag. Geometry is
-> produced by a dedicated Python engine (`engine/menutag.py`) that exports
-> watertight binary STL files validated for the Bambu Lab A1 mini, together
-> with a generated print guide. Everything user-facing is in Italian — the
-> product targets the Italian HORECA market — while code, comments and this
-> repository's engineering artifacts are in English. Quick start: see
-> [Avvio con Sail](#6-avvio-con-sail-in-due-comandi).
+> **English summary** — MenuTag Studio (repository `menutag-generator`: the
+> rebrand is surface-level, code identifiers and schema keep their names) is a
+> Laravel 13 + Livewire 4 web app that lets restaurants and resellers
+> configure and download 3D-printable "menu tags": rigid coaster-shaped table
+> tags that open the venue's digital menu via an engraved QR code and/or an
+> embedded NFC tag. Guests get a three-step wizard (format → essential input →
+> download); registered users unlock the full parametric Studio and a
+> dashboard. Geometry is produced by a dedicated Python engine
+> (`engine/menutag.py`) that exports watertight binary STL files validated for
+> the Bambu Lab A1 mini, together with a generated print guide. Everything
+> user-facing is in Italian — the product targets the Italian HORECA market —
+> while code, comments and this repository's engineering artifacts are in
+> English. Quick start: see [Avvio con Sail](#6-avvio-con-sail-in-due-comandi).
 
 Configuratore web di **targhette menù stampabili in 3D**: l'oggetto ha il
 formato di un sottobicchiere, sta sul tavolo sotto il bicchiere e dà accesso
@@ -49,7 +52,30 @@ il punto d'accesso al menù — **la doppia funzione è l'argomento di vendita**
 Lo stesso oggetto veicola anche carta dei vini, lista allergeni, credenziali
 Wi-Fi, pagina recensioni, ordinazione al tavolo, raccolta punti.
 
-![Configuratore: tre preset validati (MenuTag preselezionato) e anteprima 3D con QR reale e scansionabile](docs/images/01-home.png)
+### Il flusso: ospite in tre passi, Studio per i registrati
+
+L'interfaccia («MenuTag Studio», estetica Cyber-Maker dark-native — sistema
+di design in `docs/design/`) separa due percorsi:
+
+- **Ospite — tre passi, zero manopole.** Sceglie il formato fra i tre preset
+  (card visuali, MenuTag in evidenza), fornisce **l'input essenziale** del
+  formato — l'indirizzo del menù per il MenuTag, il logo per Coaster e
+  Coin Cart — e scarica il file di stampa (STL) con la guida. Nessun altro
+  parametro esposto; quota **5 generazioni/ora per IP**, file disponibili
+  **24 ore** via link firmati. Il parametrico è **irraggiungibile
+  server-side** per gli ospiti (anche via deep-link o duplicazione di record
+  esistenti): al suo posto una CTA di registrazione contestuale, mai un
+  vicolo cieco.
+- **Registrato — lo Studio completo.** Tutto il flusso ospite più la
+  personalizzazione parametrica con progressive disclosure (le
+  «Impostazioni di stampa avanzate» sono chiuse di default), la dashboard
+  con archivio, duplicazione, libreria loghi e QR salvati. I modelli
+  generati da ospite **seguono l'utente alla registrazione** (migrazione
+  ospite→utente).
+- La pagina **`/studio`** promuove la registrazione con benefici reali —
+  niente contatori inventati, niente testimonial.
+
+![Home ospite: wizard in tre passi, tre preset come card visuali (MenuTag preselezionato) e anteprima 3D protagonista con QR reale e scansionabile](docs/images/01-home.png)
 
 L'anteprima parametrica **non genera richieste al server**: three.js
 ricalcola la geometria e il QR (libreria `qrcode`, stessa tabella di
@@ -70,7 +96,7 @@ capacità byte-mode di PHP e motore) client-side a ogni trascinamento.
   dashboard con libreria loghi, QR salvati, storico e duplicazione delle
   configurazioni.
 
-![Dashboard: storico targhette in tutti gli stati, libreria loghi generati via codice, QR salvati riutilizzabili](docs/images/05-dashboard.png)
+![Dashboard «Il tuo archivio»: storico modelli in tutti gli stati con duplicazione, libreria loghi generati via codice, QR salvati riutilizzabili](docs/images/05-dashboard.png)
 
 ## 2. Architettura: Laravel orchestra, Python calcola
 
@@ -161,12 +187,12 @@ verificata, mai da un form vuoto.
 <tr>
 <td width="50%">
 
-![Coaster: bordo antigoccia, capacità 5.3 ml, PETG lavabile](docs/images/02-coaster.png)
+![Coaster nel wizard ospite: il logo è l'input essenziale del formato, anteprima immediata del disco Ø 85 mm](docs/images/02-coaster.png)
 
 </td>
 <td width="50%">
 
-![Coin Cart: avvertenza normativa Reg. CE 2182/2004 e compensazione XY](docs/images/03-coin-cart.png)
+![Coin Cart nel wizard ospite: gettone Ø 25.75 mm con l'avvertenza normativa Reg. CE 2182/2004](docs/images/03-coin-cart.png)
 
 </td>
 </tr>
@@ -237,7 +263,7 @@ controllo che verifica l'accoppiamento. Le soglie di dettaglio salgono a
 la profondità consigliata scende a 0.5 mm: ogni layer nella zona di intarsio
 è bicromatico e costa uno spurgo.
 
-![Generatore parametrico: parametri sbloccati sul preset MenuTag, con fasce di prodotto live](docs/images/04-configuratore-personalizzato.png)
+![Studio per registrati: parametri sbloccati sul preset MenuTag, fasce di prodotto live e progressive disclosure](docs/images/04-configuratore-personalizzato.png)
 
 ## 6. Avvio con Sail in due comandi
 
@@ -370,7 +396,7 @@ testurizzato). Ogni targhetta completata ha la sua **guida di stampa
 generata** (`/targhette/{id}/guida`, anche via API) coi valori reali del
 pezzo; questi sono i riferimenti generali con **PLA matte**:
 
-![Report di stampabilità su una generazione reale: STL caricato via STLLoader, QR decodificato dalla geometria esportata, pausa NFC sul reticolo dei layer](docs/images/06-report-stampabilita.png)
+![«Verifica di stampa» su una generazione reale: semaforo umanizzato, pausa NFC con strato e quota in mono, dettagli tecnici (QR decodificato dalla geometria esportata) come blocco secondario](docs/images/06-report-stampabilita.png)
 
 | | Ugello 0.2 | Ugello 0.4 |
 |---|---|---|
@@ -487,7 +513,10 @@ Dichiarato e **non implementato** (decisioni Fase 0 §6, spec §2.5/§8.9):
   lingua IT/EN sul bifacciale);
 - export **3MF** con profilo di stampa incorporato;
 - profili per stampanti oltre la A1 mini (`config/printers.php` è già
-  strutturato per riceverli).
+  strutturato per riceverli);
+- **tema chiaro**: la v1 è dark nativa per scelta di design (restyle §3.1,
+  `docs/design/tokens.md`); il chiaro va progettato, non ottenuto invertendo
+  il dark.
 
 Limiti e code note dei workstream, da rifinire:
 
@@ -506,8 +535,15 @@ Limiti e code note dei workstream, da rifinire:
   l'errore utente: l'ospite che corregge i parametri ricarica il logo (scelta
   documentata nel job; per riusarlo basterebbe restringere la cancellazione
   all'esito `completed`).
-- `welcome.blade.php` dello starter kit non è più raggiungibile (la home è il
-  configuratore): rimozione cosmetica rimandata.
+- La **guida di stampa generata** cita ancora «MenuTag Generator»: il testo
+  vive in `app/Services/PrintGuideGenerator.php`, dichiarato intoccabile dal
+  perimetro del restyle (`docs/design/perimetro.md`) — rebrand alla prima
+  modifica di sostanza del servizio.
+- Le pagine di **auth e impostazioni account** dello starter kit (login,
+  registrazione, 2FA, passkey) restano sulla palette `zinc` dello scaffold:
+  sono ritematizzate in dark via il remap dei token in
+  `resources/css/app.css`, ma una passata vista-per-vista è fuori dal
+  perimetro del restyle.
 - **`sail up` verificato end-to-end** (build immagine, 4 servizi, generazione
   reale via worker con motore Python, volume storage condiviso, API HTTP):
   esito conforme al riferimento validato (`PAUSE_Z=2.0`, `PAUSE_LAYER=19`,
