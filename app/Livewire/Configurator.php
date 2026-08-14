@@ -822,7 +822,7 @@ class Configurator extends Component
             && $this->presetEnum() !== Preset::Coaster) {
             $warnings[] = 'Con il bordo antigoccia la grafica incisa trattiene il liquido '
                 .'nelle scanalature e si asciuga male: su una superficie che raccoglie '
-                .'condensa conviene il rilievo o l\'intarsio a filo (più igienici).';
+                .'condensa conviene il rilievo o la resa a filo bicolore (più igienici).';
         }
 
         return $warnings;

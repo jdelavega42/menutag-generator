@@ -276,123 +276,153 @@
             </div>
         @endif
     @else
+    {{--
+        ============ REGISTERED STUDIO (flussi.md §2, mandate R-3) ============
+        The full parametric mode, reorganized with progressive disclosure:
+        IN VIEW format · size/shape · front-back · rendering (cards with a
+        preview each, never bare radios) · NFC; everything slicer-flavored
+        lives inside «Impostazioni di stampa avanzate», CLOSED by default.
+        Mechanisms are untouched (contract 04): params stay entangled, live
+        validation and the size proposal work exactly as before — only the
+        labels follow glossario.md and every measure is .mono.
+    --}}
+
     {{-- Header: locked preset or unlocked parametric mode --}}
-    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-border-subtle bg-surface-1 p-5">
         <div>
-            <flux:heading size="lg" level="2">Formato {{ $presetLabel }}</flux:heading>
-            <flux:text class="mt-0.5 text-sm">
+            <h2 class="text-lg font-semibold text-text-primary">Formato {{ $presetLabel }}</h2>
+            <p class="mt-0.5 text-sm text-text-secondary">
                 @if ($customized)
                     Parametri sbloccati: stai personalizzando il formato {{ $presetLabel }}.
                 @else
                     Formato preimpostato e validato. I parametri geometrici sono bloccati.
                 @endif
-            </flux:text>
+            </p>
         </div>
         @if (! $customized)
-            <flux:button wire:click="unlockCustomization" variant="filled" size="sm">
+            <flux:button wire:click="unlockCustomization" variant="primary" size="sm">
                 Personalizza questo formato
             </flux:button>
         @else
-            <flux:badge color="amber">Personalizzato</flux:badge>
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-accent bg-surface-2 px-3 py-1 text-xs font-semibold text-accent">
+                <span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+                Personalizzato
+            </span>
         @endif
     </div>
 
     {{-- Preset-specific mandatory notices (contract 05, avvertenze UI) --}}
     @if ($preset === 'coin_cart')
-        <div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100" wire:key="notice-coin-cart">
-            <p class="font-semibold">Avvertenza normativa (Reg. CE 2182/2004)</p>
-            <p class="mt-1">
+        <div class="rounded-card border border-warn/30 bg-warn-surface p-4 text-sm" wire:key="notice-coin-cart">
+            <p class="font-semibold text-warn">Avvertenza normativa (Reg. CE 2182/2004)</p>
+            <p class="mt-1 text-text-secondary">
                 Un gettone con le dimensioni di una moneta da 2&nbsp;€ ricade nella normativa UE su medaglie e
                 gettoni simili alle monete in euro, che prevede bande dimensionali e vincoli di design.
                 I gettoni da carrello legittimi esistono e sono diffusi, ma <strong>l'uso commerciale va
                 verificato da un legale</strong>. Questa nota non è consulenza legale, ed è corretto dirlo.
             </p>
-            <p class="mt-2">
-                <strong>Compensazione XY di serie:</strong> il preset applica {{ config('product.presets.coin_cart.defaults.xy_comp') }}&nbsp;mm
-                per lato, perché una stampa FDM di 25.75&nbsp;mm nominali esce a 25.85–25.95 e si incepperebbe
+            <p class="mt-2 text-text-secondary">
+                <strong>Adattamento alla misura reale di serie:</strong> il preset compensa
+                <span class="mono">{{ config('product.presets.coin_cart.defaults.xy_comp') }} mm</span>
+                per lato, perché una stampa di <span class="mono">25.75 mm</span> nominali esce a
+                <span class="mono">25.85–25.95 mm</span> e si incepperebbe
                 nella fessura del carrello. Misura il primo pezzo col calibro e affina il valore.
             </p>
         </div>
     @elseif ($preset === 'coaster')
-        <div class="rounded-xl border border-sky-300 bg-sky-50 p-4 text-sm text-sky-900 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-100" wire:key="notice-coaster">
-            <p>
-                <strong>Capacità dell'incavo: <span x-text="formatMm(capacityMl)"></span> ml.</strong>
+        <div class="flex gap-2.5 rounded-card border border-border-subtle border-l-[3px] border-l-tech bg-surface-2 p-4 text-sm" wire:key="notice-coaster">
+            <p class="text-text-secondary">
+                <strong class="text-text-primary">Capacità dell'incavo:
+                    <span class="mono"><span x-text="formatMm(capacityMl)"></span> ml</span>.</strong>
                 Il bordo antigoccia trattiene la condensa del bicchiere, ma il sottobicchiere non è impermeabile.
-                Materiale <strong>PETG</strong>: resiste alla lavastoviglie, dove il PLA (Tg ~60&nbsp;°C) si imbarcherebbe.
+                Materiale <strong>PETG</strong>: resiste alla lavastoviglie, dove il PLA
+                (Tg <span class="mono">~60 °C</span>) si imbarcherebbe.
             </p>
         </div>
     @elseif ($preset === 'menutag')
-        <div class="rounded-xl border border-sky-300 bg-sky-50 p-4 text-sm text-sky-900 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-100" wire:key="notice-menutag">
-            <p>
-                Configurazione validata in stampa reale (58.8 × 3.0&nbsp;mm, incisione 0.6, modulo QR 1.200&nbsp;mm).
-                Per il QR la resa <strong>a filo bicolore (inlay)</strong> è consigliata: contrasto reale di
+        <div class="flex gap-2.5 rounded-card border border-border-subtle border-l-[3px] border-l-tech bg-surface-2 p-4 text-sm" wire:key="notice-menutag">
+            <p class="text-text-secondary">
+                Configurazione validata in stampa reale (<span class="mono">58.8 × 3.0 mm</span>,
+                incisione <span class="mono">0.6 mm</span>, modulo QR <span class="mono">1.200 mm</span>).
+                Per il QR la resa <strong class="text-text-primary">a filo bicolore</strong> è consigliata: contrasto reale di
                 riflettanza, scansione affidabile in ogni condizione di luce — richiede però stampa multicolore (AMS).
             </p>
         </div>
     @endif
 
     {{-- ============ QR content ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800" x-show="front.includes('qr') || back.includes('qr') || {{ $customized ? 'true' : 'false' }}">
-        <flux:heading size="lg" level="3">Contenuto del QR</flux:heading>
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5" x-show="front.includes('qr') || back.includes('qr') || {{ $customized ? 'true' : 'false' }}">
+        <h3 class="text-lg font-semibold text-text-primary">Contenuto del QR</h3>
 
         <div class="mt-3 space-y-4">
             <div x-show="front.includes('qr')" x-cloak>
-                <label class="block text-sm font-medium" for="qr-data-front">Indirizzo del QR frontale</label>
+                <label class="block text-sm font-medium text-text-secondary" for="qr-data-front">Indirizzo del QR frontale</label>
                 <input
                     id="qr-data-front"
                     type="url"
+                    inputmode="url"
+                    spellcheck="false"
                     x-model="qrDataFront"
                     placeholder="{{ config('product.qr.demo_url') }}"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary placeholder:text-text-muted"
                 />
                 {{-- Short-URL advice, exactly where the URL is typed (spec §5.2) --}}
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    <strong>Consiglio: un URL breve mantiene il formato base.</strong>
+                <p class="mt-1.5 text-xs text-text-muted">
+                    <strong class="text-text-secondary">Consiglio: un indirizzo breve mantiene il formato base.</strong>
                     Un indirizzo compatto o un redirect tiene la targhetta a
-                    <span x-text="formatMm(window.menuTagProduct.qr.floor_square_mm)"></span> mm invece di farla crescere —
-                    e incide sul costo del pezzo.
-                    Adesso: <span x-text="qrUrlBytes"></span> byte → QR versione <span x-text="qrVersion ?? '—'"></span>,
-                    minimo <span x-text="formatMm(qrMinSquare)"></span> mm di lato
-                    oppure <span x-text="formatMm(qrMinCircle)"></span> mm di diametro.
+                    <span class="mono text-xs"><span x-text="formatMm(window.menuTagProduct.qr.floor_square_mm)"></span> mm</span>
+                    invece di farla crescere — e incide sul costo del pezzo.
+                    Adesso: <span class="mono text-xs" x-text="qrUrlBytes"></span> byte
+                    → QR versione <span class="mono text-xs" x-text="qrVersion ?? '—'"></span>,
+                    minimo <span class="mono text-xs"><span x-text="formatMm(qrMinSquare)"></span> mm</span> di lato
+                    oppure <span class="mono text-xs"><span x-text="formatMm(qrMinCircle)"></span> mm</span> di diametro.
                 </p>
                 @error('parameters.qr_data_front')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
             <div x-show="back.includes('qr')" x-cloak>
-                <label class="block text-sm font-medium" for="qr-data-back">Indirizzo del QR posteriore</label>
+                <label class="block text-sm font-medium text-text-secondary" for="qr-data-back">Indirizzo del QR posteriore</label>
                 <input
                     id="qr-data-back"
                     type="url"
+                    inputmode="url"
+                    spellcheck="false"
                     x-model="qrDataBack"
                     placeholder="https://esempio.it/menu-en"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary placeholder:text-text-muted"
                 />
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                <p class="mt-1.5 text-xs text-text-muted">
                     Puoi usare due QR diversi sulle due facce, ad esempio menù italiano e inglese.
-                    Anche qui un URL breve mantiene il formato base.
+                    Anche qui un indirizzo breve mantiene il formato base.
                 </p>
                 @error('parameters.qr_data_back')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
+            {{-- «Affidabilità di scansione» (glossario classe B): human labels,
+                 the technical L/M/Q/H letter survives only as mono detail. --}}
             <div x-show="front.includes('qr') || back.includes('qr')">
-                <label class="block text-sm font-medium" for="qr-ec">Correzione d'errore</label>
+                <label class="block text-sm font-medium text-text-secondary" for="qr-ec">Affidabilità di scansione</label>
                 <select
                     id="qr-ec"
                     x-model="qrEc"
                     :disabled="front === 'qr_logo' || back === 'qr_logo'"
-                    class="mt-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm disabled:opacity-60 dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 rounded-control border border-border-strong bg-surface-2 px-3 py-2 text-base text-text-primary disabled:opacity-60"
                 >
-                    <option value="L">L — minima (più capacità)</option>
-                    <option value="M">M — media</option>
-                    <option value="Q">Q — alta</option>
-                    <option value="H">H — massima (consigliata)</option>
+                    <option value="H">Massima (consigliata)</option>
+                    <option value="Q">Alta</option>
+                    <option value="M">Media</option>
+                    <option value="L">Minima — più capacità per l'indirizzo</option>
                 </select>
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400" x-show="front === 'qr_logo' || back === 'qr_logo'" x-cloak>
-                    Con il logo al centro del QR la correzione è forzata a <strong>H</strong>: il logo copre parte del simbolo.
+                <p class="mt-1.5 text-xs text-text-muted">
+                    Più affidabilità = scansione sicura anche con superficie rovinata o poca luce.
+                    Dettaglio tecnico: livello di correzione <span class="mono text-xs" x-text="qrEc"></span>.
+                </p>
+                <p class="mt-1.5 text-xs text-text-muted" x-show="front === 'qr_logo' || back === 'qr_logo'" x-cloak>
+                    Con il logo al centro del QR l'affidabilità è forzata a <strong>Massima</strong>: il logo copre parte del simbolo.
                 </p>
             </div>
 
@@ -400,29 +430,30 @@
             <div
                 x-show="shape === 'circle' && (front.includes('qr') || back.includes('qr'))"
                 x-cloak
-                class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100"
+                class="rounded-card border border-warn/30 bg-warn-surface p-3.5 text-xs text-text-secondary"
             >
                 Sul cerchio il QR va inscritto sulla diagonale: la soglia sale a
-                <span x-text="formatMm(window.menuTagProduct.qr.floor_circle_mm)"></span> mm di diametro
-                (contro <span x-text="formatMm(window.menuTagProduct.qr.floor_square_mm)"></span> di lato del quadrato)
+                <span class="mono text-xs"><span x-text="formatMm(window.menuTagProduct.qr.floor_circle_mm)"></span> mm</span> di diametro
+                (contro <span class="mono text-xs"><span x-text="formatMm(window.menuTagProduct.qr.floor_square_mm)"></span> mm</span> di lato del quadrato)
                 e, a parità di ingombro, il modulo del quadrato è circa il
-                <span x-text="squareAdvantagePct"></span>% più grande. Il cerchio resta supportato: è il costo della scelta.
+                <span class="mono text-xs"><span x-text="squareAdvantagePct"></span>%</span> più grande.
+                Il cerchio resta supportato: è il costo della scelta.
             </div>
         </div>
     </div>
 
-    {{-- ============ Faces (custom mode) ============ --}}
+    {{-- ============ Faces (custom mode) — «Fronte e retro» (glossario C) ============ --}}
     @if ($customized)
-        <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800" wire:key="faces-section">
-            <flux:heading size="lg" level="3">Contenuto per faccia</flux:heading>
+        <div class="rounded-panel border border-border-subtle bg-surface-1 p-5" wire:key="faces-section">
+            <h3 class="text-lg font-semibold text-text-primary">Fronte e retro</h3>
             <div class="mt-3 grid gap-4 sm:grid-cols-2">
                 @foreach (['front' => 'Faccia frontale', 'back' => 'Faccia posteriore'] as $face => $faceLabel)
                     <div wire:key="face-{{ $face }}">
-                        <label class="block text-sm font-medium" for="face-{{ $face }}">{{ $faceLabel }}</label>
+                        <label class="block text-sm font-medium text-text-secondary" for="face-{{ $face }}">{{ $faceLabel }}</label>
                         <select
                             id="face-{{ $face }}"
                             x-model="{{ $face }}"
-                            class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                            class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 text-base text-text-primary"
                         >
                             <option value="none">Nessun contenuto</option>
                             <option value="logo">Logo</option>
@@ -433,66 +464,69 @@
                 @endforeach
             </div>
             {{-- QR options disabled below the shape-dependent threshold: explain WHY + the minimum size (spec §3.2) --}}
-            <p class="mt-2 text-xs text-amber-700 dark:text-amber-300" x-show="!qrAvailable" x-cloak>
+            <p class="mt-2.5 text-xs text-warn" x-show="!qrAvailable" x-cloak>
                 Le opzioni QR sono disabilitate: alla dimensione attuale
-                (<span x-text="formatMm(size)"></span> mm) il passo del modulo scenderebbe sotto
-                {{ config('product.qr.min_pitch_mm') }} mm e il codice diventerebbe inaffidabile alla scansione.
+                (<span class="mono text-xs"><span x-text="formatMm(size)"></span> mm</span>) i blocchi del codice
+                diventerebbero più piccoli di
+                <span class="mono text-xs">{{ config('product.qr.min_pitch_mm') }} mm</span>
+                e la scansione inaffidabile.
                 Con l'indirizzo inserito il QR richiede almeno
-                <span x-text="formatMm(qrMinSquare)"></span> mm di lato,
-                oppure <span x-text="formatMm(qrMinCircle)"></span> mm di diametro.
+                <span class="mono text-xs"><span x-text="formatMm(qrMinSquare)"></span> mm</span> di lato,
+                oppure <span class="mono text-xs"><span x-text="formatMm(qrMinCircle)"></span> mm</span> di diametro.
             </p>
         </div>
     @endif
 
-    {{-- ============ Product bands + functional minimum (spec §3.2 / §8.8) ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <flux:heading size="lg" level="3">Fasce di prodotto</flux:heading>
+    {{-- ============ Product bands — «Disponibile a questa dimensione» (glossario C) ============ --}}
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <h3 class="text-lg font-semibold text-text-primary">Disponibile a questa dimensione</h3>
         <ul class="mt-3 space-y-1 text-sm">
             <li
-                class="flex items-center gap-2 rounded-lg px-2 py-1"
-                :class="effectiveSize < nfcPlanMin(25) && 'bg-zinc-100 font-medium dark:bg-zinc-700'"
+                class="flex items-baseline gap-3 rounded-control px-2.5 py-1.5 text-text-secondary"
+                :class="effectiveSize < nfcPlanMin(25) && 'bg-surface-3 font-medium text-text-primary'"
             >
-                <span class="text-zinc-500 dark:text-zinc-400 tabular-nums" x-text="`${window.menuTagProduct.size_min_mm} – ${(nfcPlanMin(25) - 0.01).toFixed(2)} mm`"></span>
+                <span class="mono flex-none" x-text="`${window.menuTagProduct.size_min_mm} – ${(nfcPlanMin(25) - 0.01).toFixed(2)} mm`"></span>
                 <span>logo + NFC Ø22 — il tag Ø25 non entra (parete radiale insufficiente)</span>
             </li>
             <li
-                class="flex items-center gap-2 rounded-lg px-2 py-1"
-                :class="effectiveSize >= nfcPlanMin(25) && size < (shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) && 'bg-zinc-100 font-medium dark:bg-zinc-700'"
+                class="flex items-baseline gap-3 rounded-control px-2.5 py-1.5 text-text-secondary"
+                :class="effectiveSize >= nfcPlanMin(25) && size < (shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) && 'bg-surface-3 font-medium text-text-primary'"
             >
-                <span class="text-zinc-500 dark:text-zinc-400 tabular-nums" x-text="`${nfcPlanMin(25)} – ${((shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) - 0.01).toFixed(2)} mm`"></span>
+                <span class="mono flex-none" x-text="`${nfcPlanMin(25)} – ${((shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) - 0.01).toFixed(2)} mm`"></span>
                 <span>logo + NFC Ø22/Ø25 — formato «gettone», accesso solo NFC</span>
             </li>
             <li
-                class="flex items-center gap-2 rounded-lg px-2 py-1"
-                :class="size >= (shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) && 'bg-zinc-100 font-medium dark:bg-zinc-700'"
+                class="flex items-baseline gap-3 rounded-control px-2.5 py-1.5 text-text-secondary"
+                :class="size >= (shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm) && 'bg-surface-3 font-medium text-text-primary'"
             >
-                <span class="text-zinc-500 dark:text-zinc-400 tabular-nums" x-text="`≥ ${shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm} mm`"></span>
+                <span class="mono flex-none" x-text="`≥ ${shape === 'square' ? window.menuTagProduct.qr.floor_square_mm : window.menuTagProduct.qr.floor_circle_mm} mm`"></span>
                 <span>logo + QR + NFC — formato sottobicchiere completo, il prodotto principale</span>
             </li>
         </ul>
-        <p class="mt-3 border-t border-zinc-100 pt-3 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Minimo di prodotto: <strong x-text="window.menuTagProduct.size_min_mm + ' mm'"></strong> (la moneta da 2&nbsp;€).
+        <p class="mt-3 border-t border-border-subtle pt-3 text-xs text-text-muted">
+            Minimo di prodotto: <span class="mono text-xs" x-text="window.menuTagProduct.size_min_mm + ' mm'"></span> (la moneta da 2&nbsp;€).
             Minimo funzionale per questa configurazione:
-            <strong x-text="(Math.round(minFunctional.size * 100) / 100) + ' mm'"></strong>
+            <span class="mono text-xs" x-text="(Math.round(minFunctional.size * 100) / 100) + ' mm'"></span>
             — <span x-text="minFunctional.reason"></span>.
         </p>
     </div>
 
     {{-- Pending size adjustment proposal: NEVER applied silently over a manual size (spec §5.2) --}}
     @if ($proposedSize !== null)
-        <div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100" wire:key="size-proposal">
-            <p class="font-semibold">La dimensione impostata a mano non basta più.</p>
-            <p class="mt-1">{{ $proposedSizeReason }}</p>
-            <flux:button wire:click="acceptProposedSize" variant="primary" size="sm" class="mt-2">
+        <div class="rounded-card border border-warn/30 bg-warn-surface p-4 text-sm" wire:key="size-proposal">
+            <p class="font-semibold text-warn">La dimensione impostata a mano non basta più.</p>
+            <p class="mt-1 text-text-secondary">{{ $proposedSizeReason }}</p>
+            <flux:button wire:click="acceptProposedSize" variant="primary" size="sm" class="mt-2.5">
                 Adegua a {{ rtrim(rtrim(number_format($proposedSize, 2, '.', ''), '0'), '.') }} mm
             </flux:button>
         </div>
     @endif
 
-    {{-- ============ Graphic rendering mode (§3.6) ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <flux:heading size="lg" level="3">Resa della grafica</flux:heading>
-        <div class="mt-3 grid gap-2 sm:grid-cols-3">
+    {{-- ============ Graphic rendering mode (§3.6) — CARDS with a preview, never bare radios ============ --}}
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <h3 class="text-lg font-semibold text-text-primary">Resa della grafica</h3>
+        <p class="mt-1 text-xs text-text-muted">Com'è fatta la superficie, vista di taglio: tre lavorazioni, la stessa grafica.</p>
+        <div class="mt-3 grid gap-2.5 sm:grid-cols-3">
             @foreach ([
                 'engrave' => ['Incisa', 'Scanalature: legge per ombra, trattiene liquido.'],
                 'relief' => ['Rilievo', 'Sporgenze pulibili, nessun requisito hardware.'],
@@ -501,39 +535,60 @@
                 @php($rejected = in_array($modeValue, $rejectedModes, true))
                 <label
                     wire:key="mode-{{ $modeValue }}"
-                    class="flex cursor-pointer flex-col rounded-lg border p-3 text-sm transition {{ $rejected ? 'cursor-not-allowed opacity-50' : '' }}"
-                    :class="mode === '{{ $modeValue }}' ? 'border-accent ring-1 ring-accent' : 'border-zinc-300 dark:border-zinc-600'"
+                    class="flex flex-col gap-2.5 rounded-card border bg-surface-2 p-3.5 transition-colors duration-[var(--t-micro)] focus-within:outline-2 focus-within:outline-border-strong {{ $rejected ? 'cursor-not-allowed opacity-50' : 'cursor-pointer' }}"
+                    :class="mode === '{{ $modeValue }}' ? 'border-accent' : 'border-border-subtle {{ $rejected ? '' : 'hover:bg-surface-3' }}'"
                 >
-                    <span class="flex items-center gap-2 font-medium">
-                        <input type="radio" name="mode" value="{{ $modeValue }}" x-model="mode" @disabled($rejected) class="accent-current" />
-                        {{ $modeLabel }}
-                        @if ($modeValue === $recommendedMode)
-                            <flux:badge size="sm" color="lime">consigliata</flux:badge>
+                    <input type="radio" name="mode" value="{{ $modeValue }}" x-model="mode" @disabled($rejected) class="sr-only" />
+                    {{-- Cross-section preview of the finish (light body, dark graphic) --}}
+                    <span class="flex h-14 items-center justify-center rounded-control border border-border-subtle bg-surface-1" aria-hidden="true">
+                        @if ($modeValue === 'engrave')
+                            <svg width="72" height="36" viewBox="0 0 72 36">
+                                <path d="M4 12h14v8h8v-8h20v8h8v-8h14v20H4Z" class="fill-text-primary" />
+                            </svg>
+                        @elseif ($modeValue === 'relief')
+                            <svg width="72" height="36" viewBox="0 0 72 36">
+                                <path d="M4 20h14v-8h8v8h20v-8h8v8h14v12H4Z" class="fill-text-primary" />
+                            </svg>
+                        @else
+                            <svg width="72" height="36" viewBox="0 0 72 36">
+                                <rect x="4" y="12" width="64" height="20" class="fill-text-primary" />
+                                <rect x="18" y="12" width="8" height="6" class="fill-surface-0" />
+                                <rect x="46" y="12" width="8" height="6" class="fill-surface-0" />
+                            </svg>
                         @endif
                     </span>
-                    <span class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{{ $modeHint }}</span>
+                    <span>
+                        <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-text-primary">
+                            {{ $modeLabel }}
+                            @if ($modeValue === $recommendedMode)
+                                <span class="rounded-full border border-ok/30 bg-ok-surface px-2 py-px text-xs font-medium text-ok">consigliata</span>
+                            @endif
+                            <span x-show="mode === '{{ $modeValue }}'" x-cloak class="text-xs font-semibold tracking-wide text-accent">● Selezionata</span>
+                        </span>
+                        <span class="mt-0.5 block text-xs text-text-muted">{{ $modeHint }}</span>
+                    </span>
                 </label>
             @endforeach
         </div>
 
         @if (in_array('engrave', $rejectedModes, true))
-            <p class="mt-2 text-xs text-amber-700 dark:text-amber-300">
+            <p class="mt-2.5 text-xs text-warn">
                 Sul Coaster la grafica <strong>incisa non è disponibile</strong>: le scanalature restano piene di
                 liquido, si asciugano male e in poco tempo sembrano sporche — un problema di igiene in ambito
-                HORECA, non di estetica. Usa il rilievo o l'intarsio a filo.
+                HORECA, non di estetica. Usa il rilievo o la resa a filo bicolore.
             </p>
         @endif
 
-        {{-- Inlay: multicolor requirement + bichromatic layer count (§3.6) --}}
-        <div x-show="mode === 'inlay'" x-cloak class="mt-3 rounded-lg border border-sky-300 bg-sky-50 p-3 text-xs text-sky-900 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-100">
-            <p class="font-semibold">L'intarsio richiede una stampante multicolore (AMS o cambio filamento manuale).</p>
+        {{-- Inlay: multicolor requirement + two-color layer count (§3.6, glossario C) --}}
+        <div x-show="mode === 'inlay'" x-cloak class="mt-3 rounded-card border border-border-subtle border-l-[3px] border-l-tech bg-surface-2 p-3.5 text-xs text-text-secondary">
+            <p class="font-semibold text-text-primary">La resa a filo bicolore richiede una stampante multicolore (AMS o cambio filamento manuale).</p>
             <p class="mt-1">
-                Produce due STL complanari (corpo + accento). Con la profondità attuale di
-                <span x-text="formatMm(depth)"></span> mm e layer da
-                <span x-text="resolvedLayerHeight"></span> mm servono
-                <strong><span x-text="inlayBicolorLayers"></span> layer bicromatici</strong>,
+                Produce due file di stampa complanari (corpo + accento). Con la profondità attuale di
+                <span class="mono text-xs"><span x-text="formatMm(depth)"></span> mm</span> e strati da
+                <span class="mono text-xs"><span x-text="resolvedLayerHeight"></span> mm</span> servono
+                <strong><span class="mono text-xs" x-text="inlayBicolorLayers"></span> strati a due colori</strong>,
                 ognuno con il suo spurgo: la profondità proposta è
-                {{ config('product.inlay.default_depth_mm') }} mm proprio per contenerli.
+                <span class="mono text-xs">{{ config('product.inlay.default_depth_mm') }} mm</span> proprio per contenerli.
             </p>
             <p class="mt-1">
                 Senza hardware multicolore l'alternativa universale è il <strong>rilievo</strong>, oppure
@@ -542,23 +597,23 @@
         </div>
     </div>
 
-    {{-- ============ NFC ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg" level="3">Tag NFC</flux:heading>
-            <label class="flex items-center gap-2 text-sm">
-                <input type="checkbox" x-model="nfc" class="size-4 accent-current" />
+    {{-- ============ NFC (the tag thickness lives in the advanced settings) ============ --}}
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-lg font-semibold text-text-primary">Tag NFC</h3>
+            <label class="flex items-center gap-2 text-sm text-text-secondary">
+                <input type="checkbox" x-model="nfc" class="size-4 accent-accent" />
                 Annega un tag NFC nella targhetta
             </label>
         </div>
 
         <div x-show="nfc" x-cloak class="mt-3 space-y-3">
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-wrap gap-2.5">
                 @foreach ([22, 25] as $diameter)
                     <label
                         wire:key="tag-diameter-{{ $diameter }}"
-                        class="flex items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-600"
-                        :class="(!nfcTagAvailable({{ $diameter }}) || {{ json_encode(! in_array($diameter, $allowedNfcTags, true)) }}) && 'cursor-not-allowed opacity-50'"
+                        class="flex items-center gap-2 rounded-card border bg-surface-2 px-3.5 py-2 text-sm text-text-primary transition-colors duration-[var(--t-micro)] focus-within:outline-2 focus-within:outline-border-strong"
+                        :class="((!nfcTagAvailable({{ $diameter }}) || {{ json_encode(! in_array($diameter, $allowedNfcTags, true)) }}) ? 'cursor-not-allowed opacity-50 ' : '') + (Number(tagDiameter) === {{ $diameter }} ? 'border-accent' : 'border-border-subtle')"
                     >
                         <input
                             type="radio"
@@ -566,50 +621,38 @@
                             value="{{ $diameter }}"
                             x-model.number="tagDiameter"
                             :disabled="!nfcTagAvailable({{ $diameter }}) || {{ json_encode(! in_array($diameter, $allowedNfcTags, true)) }}"
-                            class="accent-current"
+                            class="accent-accent"
                         />
-                        Ø{{ $diameter }} mm
+                        <span class="mono">Ø{{ $diameter }} mm</span>
                     </label>
                 @endforeach
             </div>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400" x-show="!nfcTagAvailable(25)" x-cloak>
-                Il tag Ø25 richiede una pianta effettiva di almeno <span x-text="formatMm(nfcPlanMin(25))"></span> mm
+            <p class="text-xs text-text-muted" x-show="!nfcTagAvailable(25)" x-cloak>
+                Il tag Ø25 richiede una pianta effettiva di almeno
+                <span class="mono text-xs"><span x-text="formatMm(nfcPlanMin(25))"></span> mm</span>
                 (tag + gioco radiale + pareti minime): alla dimensione attuale non lascerebbe la parete richiesta.
             </p>
             @if (! in_array(25, $allowedNfcTags, true))
-                <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                    Il preset {{ $presetLabel }} supporta solo il tag Ø22: un Ø25 lascerebbe 0.175 mm di parete radiale.
+                <p class="text-xs text-text-muted">
+                    Il preset {{ $presetLabel }} supporta solo il tag Ø22: un Ø25 lascerebbe
+                    <span class="mono text-xs">0.175 mm</span> di parete radiale.
                 </p>
             @endif
-
-            <div>
-                <label class="block text-sm font-medium" for="tag-thickness">Spessore reale del tag (mm)</label>
-                <input
-                    id="tag-thickness"
-                    type="number" step="0.05" min="{{ config('product.nfc.tag_thickness_range_mm.0') }}" max="{{ config('product.nfc.tag_thickness_range_mm.1') }}"
-                    x-model.number="tagThickness"
-                    class="mt-1 w-32 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-                />
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Misuralo col calibro: la tasca viene calcolata sul valore dichiarato, con
-                    {{ config('product.nfc.axial_clearance_mm') }} mm di gioco assiale.
-                </p>
-                @error('parameters.tag_thickness')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
+            <p class="text-xs text-text-muted">
+                Lo <strong>spessore del tag NFC</strong> si dichiara nelle «Impostazioni di stampa avanzate», qui sotto.
+            </p>
         </div>
     </div>
 
-    {{-- ============ Geometry (locked until "personalizza questo formato") ============ --}}
+    {{-- ============ Size and shape (locked until "personalizza questo formato") ============ --}}
     <fieldset
         @disabled(! $customized)
-        class="rounded-xl border border-zinc-200 bg-white p-4 disabled:opacity-70 dark:border-zinc-700 dark:bg-zinc-800"
+        class="rounded-panel border border-border-subtle bg-surface-1 p-5 disabled:opacity-70"
     >
-        <div class="flex items-center justify-between">
-            <flux:heading size="lg" level="3">Geometria</flux:heading>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-lg font-semibold text-text-primary">Dimensione e forma</h3>
             @if (! $customized)
-                <span class="text-xs text-zinc-500 dark:text-zinc-400">
+                <span class="text-xs text-text-muted">
                     Bloccata dal formato — usa «Personalizza questo formato»
                 </span>
             @endif
@@ -617,19 +660,19 @@
 
         <div class="mt-3 grid gap-4 sm:grid-cols-2">
             <div>
-                <span class="block text-sm font-medium">Forma</span>
-                <div class="mt-1 flex gap-3">
-                    <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="shape" value="square" x-model="shape" class="accent-current" /> Quadrato (lato)
+                <span class="block text-sm font-medium text-text-secondary">Forma</span>
+                <div class="mt-1.5 flex gap-3">
+                    <label class="flex items-center gap-2 text-sm text-text-primary">
+                        <input type="radio" name="shape" value="square" x-model="shape" class="accent-accent" /> Quadrato (lato)
                     </label>
-                    <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="shape" value="circle" x-model="shape" class="accent-current" /> Cerchio (diametro)
+                    <label class="flex items-center gap-2 text-sm text-text-primary">
+                        <input type="radio" name="shape" value="circle" x-model="shape" class="accent-accent" /> Cerchio (diametro)
                     </label>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium" for="size">
+                <label class="block text-sm font-medium text-text-secondary" for="size">
                     Dimensione (mm) — <span x-text="shape === 'square' ? 'lato' : 'diametro'"></span>
                 </label>
                 <input
@@ -637,67 +680,68 @@
                     type="number" step="0.1" min="{{ config('product.size_min_mm') }}" max="{{ config('product.size_max_mm') }}"
                     x-model.number="size"
                     x-on:input="sizeTouched = true"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
                 />
                 @error('parameters.size')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
-            {{-- Fillet: ONLY for squares (spec §6 WS-4) --}}
+            {{-- Fillet: ONLY for squares (spec §6 WS-4) — «Angoli arrotondati» (glossario B) --}}
             <div x-show="shape === 'square'" x-cloak>
-                <label class="block text-sm font-medium" for="fillet">Raggio smussatura angoli (mm)</label>
+                <label class="block text-sm font-medium text-text-secondary" for="fillet">Angoli arrotondati</label>
                 <input
                     id="fillet"
                     type="number" step="0.5" min="0"
                     x-model.number="fillet"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
                 />
+                <p class="mt-1.5 text-xs text-text-muted">Raggio in <span class="mono text-xs">mm</span>: 0 = angoli vivi.</p>
                 @error('parameters.fillet')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
             <div>
-                <label class="block text-sm font-medium" for="thickness">Spessore (mm)</label>
+                <label class="block text-sm font-medium text-text-secondary" for="thickness">Spessore (mm)</label>
                 <input
                     id="thickness"
                     type="number" step="0.1" min="{{ config('product.thickness_min_mm') }}" max="{{ config('product.thickness_max_mm') }}"
                     x-model.number="thickness"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
                 />
                 @error('parameters.thickness')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
             <div>
-                <span class="block text-sm font-medium">Profilo base</span>
-                <div class="mt-1 flex gap-3">
-                    <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="baseProfile" value="flat" x-model="baseProfile" class="accent-current" /> Piatto
+                <span class="block text-sm font-medium text-text-secondary">Profilo base</span>
+                <div class="mt-1.5 flex gap-3">
+                    <label class="flex items-center gap-2 text-sm text-text-primary">
+                        <input type="radio" name="baseProfile" value="flat" x-model="baseProfile" class="accent-accent" /> Piatto
                     </label>
-                    <label class="flex items-center gap-2 text-sm">
-                        <input type="radio" name="baseProfile" value="rimmed" x-model="baseProfile" class="accent-current" /> Bordo antigoccia
+                    <label class="flex items-center gap-2 text-sm text-text-primary">
+                        <input type="radio" name="baseProfile" value="rimmed" x-model="baseProfile" class="accent-accent" /> Bordo antigoccia
                     </label>
                 </div>
             </div>
 
             <div x-show="baseProfile === 'rimmed'" x-cloak class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium" for="rim-width">Bordo (mm)</label>
+                    <label class="block text-sm font-medium text-text-secondary" for="rim-width">Bordo (mm)</label>
                     <input id="rim-width" type="number" step="0.5" min="0" x-model.number="rimWidth"
-                        class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900" />
+                        class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium" for="recess-depth">Incavo (mm)</label>
+                    <label class="block text-sm font-medium text-text-secondary" for="recess-depth">Incavo (mm)</label>
                     <input id="recess-depth" type="number" step="0.1" min="0" x-model.number="recessDepth"
-                        class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900" />
+                        class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums" />
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium" for="depth">
+                <label class="block text-sm font-medium text-text-secondary" for="depth">
                     <span x-text="mode === 'relief' ? 'Altezza della grafica (mm)' : 'Profondità della grafica (mm)'"></span>
                 </label>
                 <input
@@ -706,139 +750,205 @@
                     min="{{ config('product.graphics.depth_min_mm') }}" max="{{ config('product.graphics.depth_max_mm') }}"
                     x-model.number="depth"
                     x-on:input="depthTouched = true"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
                 />
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400" x-show="mode === 'relief' && baseProfile === 'rimmed'" x-cloak>
+                <p class="mt-1.5 text-xs text-text-muted" x-show="mode === 'relief' && baseProfile === 'rimmed'" x-cloak>
                     In rilievo con bordo antigoccia l'altezza deve restare <strong>sotto il bordo</strong>
-                    (&lt; <span x-text="formatMm(recessDepth)"></span> mm), altrimenti il bicchiere appoggia sul rilievo.
+                    (&lt; <span class="mono text-xs"><span x-text="formatMm(recessDepth)"></span> mm</span>),
+                    altrimenti il bicchiere appoggia sul rilievo.
                 </p>
                 @error('parameters.depth')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
                 @enderror
             </div>
 
             <div>
-                <label class="block text-sm font-medium" for="nozzle">Ugello (mm)</label>
-                <select id="nozzle" x-model="nozzle"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900">
-                    <option value="0.2">0.2 — massimo dettaglio</option>
-                    <option value="0.4">0.4 — standard</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium" for="layer-height">Altezza layer (mm)</label>
-                <input
-                    id="layer-height"
-                    type="number" step="0.01"
-                    x-model.number="layerHeight"
-                    :placeholder="nozzleRange ? `default ${nozzleRange.layer_default}` : ''"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-                />
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400" x-show="nozzleRange">
-                    Con ugello <span x-text="nozzle"></span>: da <span x-text="nozzleRange?.layer_min"></span>
-                    a <span x-text="nozzleRange?.layer_max"></span> mm. Vuoto = default del profilo stampante.
-                </p>
-                @error('parameters.layer_height')
-                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium" for="material">Materiale</label>
+                <label class="block text-sm font-medium text-text-secondary" for="material">Materiale</label>
                 <select id="material" x-model="material"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900">
+                    class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 text-base text-text-primary">
                     <option value="pla-matte">PLA matte</option>
                     <option value="petg">PETG (lavastoviglie)</option>
                 </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium" for="xy-comp">Compensazione XY (mm per lato)</label>
-                <input
-                    id="xy-comp"
-                    type="number" step="0.05"
-                    min="{{ config('product.xy_comp_range_mm.0') }}" max="{{ config('product.xy_comp_range_mm.1') }}"
-                    x-model.number="xyComp"
-                    class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-                />
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    Negativa = pezzo più piccolo. Dimensione effettiva stampata:
-                    <span x-text="formatMm(effectiveSize)"></span> mm.
-                </p>
             </div>
         </div>
     </fieldset>
 
     {{-- ============ Logo ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <flux:heading size="lg" level="3">Logo</flux:heading>
-        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <h3 class="text-lg font-semibold text-text-primary">Logo</h3>
+        <p class="mt-1 text-xs text-text-muted">
             Consigliati <strong>PNG monocromatici ad alto contrasto o SVG vettoriali</strong>:
             sfumature e fotografie non si prestano all'estrusione.
-            Massimo {{ number_format((int) config('product.guests.upload_max_kb') / 1024, 0) }} MB, solo PNG o SVG.
+            Massimo <span class="mono text-xs">{{ number_format((int) config('product.guests.upload_max_kb') / 1024, 0) }} MB</span>, solo PNG o SVG.
         </p>
 
         <div class="mt-3 flex flex-wrap items-center gap-4">
             @if ($logoPreviewUrl !== null)
-                <img src="{{ $logoPreviewUrl }}" alt="Anteprima del logo caricato" class="size-16 rounded-lg border border-zinc-200 bg-white object-contain p-1 dark:border-zinc-600" />
+                <img src="{{ $logoPreviewUrl }}" alt="Anteprima del logo caricato" class="size-16 rounded-control border border-border-subtle bg-text-primary object-contain p-1" />
                 <flux:button wire:click="removeLogo" variant="ghost" size="sm">Rimuovi logo</flux:button>
             @endif
-            <label class="cursor-pointer rounded-lg border border-dashed border-zinc-400 px-4 py-2 text-sm hover:border-zinc-600 dark:border-zinc-500">
-                <input type="file" wire:model="logoUpload" accept=".png,.svg,image/png,image/svg+xml" class="hidden" />
+            <label class="cursor-pointer rounded-control border border-dashed border-border-strong px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-[var(--t-micro)] hover:bg-surface-3 focus-within:outline-2 focus-within:outline-border-strong">
+                <input type="file" wire:model="logoUpload" accept=".png,.svg,image/png,image/svg+xml" class="sr-only" />
                 {{ $logoPreviewUrl !== null ? 'Sostituisci logo…' : 'Carica un logo…' }}
             </label>
-            <span wire:loading wire:target="logoUpload" class="text-xs text-zinc-500">Caricamento…</span>
+            <span wire:loading wire:target="logoUpload" class="text-xs text-text-muted">Caricamento…</span>
         </div>
         @error('logoUpload')
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
         @enderror
         @error('parameters.logo_asset_id')
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
         @enderror
     </div>
 
-    {{-- ============ Series production (spec §5.2) ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <flux:heading size="lg" level="3">Produzione in serie</flux:heading>
+    {{-- ============ Series production (spec §5.2) — «Pezzi per stampata» (glossario B) ============ --}}
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <h3 class="text-lg font-semibold text-text-primary">Produzione in serie</h3>
         <div class="mt-3 flex flex-wrap items-end gap-4">
             <div>
-                <label class="block text-sm font-medium" for="plate">Piastra da N pezzi</label>
+                <label class="block text-sm font-medium text-text-secondary" for="plate">Pezzi per stampata</label>
                 <input
                     id="plate"
                     type="number" step="1" min="1" max="{{ config('product.plate.max_pieces') }}"
                     x-model.number="plate"
-                    class="mt-1 w-28 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+                    class="mt-1.5 w-28 rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
                 />
             </div>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                L'STL esce già con l'array spaziato di {{ config('printers.profiles.a1mini.plate_spacing_mm') }} mm.
-                Sul formato {{ $presetLabel }} l'A1 mini ospita <strong>{{ $plateSuggested }} pezzi</strong> per piastra.
+            <p class="text-xs text-text-muted">
+                Il file di stampa esce già con i pezzi spaziati di
+                <span class="mono text-xs">{{ config('printers.profiles.a1mini.plate_spacing_mm') }} mm</span>.
+                Sul formato {{ $presetLabel }} l'A1 mini ospita <strong>{{ $plateSuggested }} pezzi</strong> per stampata.
             </p>
         </div>
         @error('parameters.plate')
-            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+            <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
         @enderror
     </div>
 
+    {{--
+        ============ «Impostazioni di stampa avanzate» (progressive disclosure) ============
+        CLOSED by default (mandate R-3 / glossario B): print quality (nozzle as
+        secondary detail), print layers, real-size adjustment, NFC tag
+        thickness. Alpine local state survives Livewire morphs, so the panel
+        stays open while live validation re-renders the component.
+    --}}
+    <div x-data="{ advancedOpen: false }" wire:key="advanced-print-settings" class="rounded-panel border border-border-subtle bg-surface-1">
+        <button
+            type="button"
+            x-on:click="advancedOpen = !advancedOpen"
+            :aria-expanded="advancedOpen ? 'true' : 'false'"
+            aria-controls="advanced-print-settings-panel"
+            class="flex w-full items-center justify-between gap-3 p-5 text-left"
+        >
+            <span>
+                <span class="block text-lg font-semibold text-text-primary">Impostazioni di stampa avanzate</span>
+                <span class="mt-0.5 block text-xs text-text-muted">
+                    Per chi stampa in proprio o per il service — i valori preimpostati vanno già bene.
+                </span>
+            </span>
+            <svg
+                class="size-4 flex-none text-text-muted transition-transform duration-[var(--t-micro)]"
+                :class="advancedOpen && 'rotate-180'"
+                viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                aria-hidden="true"
+            ><path d="M3 6l5 5 5-5" /></svg>
+        </button>
+
+        <div id="advanced-print-settings-panel" x-show="advancedOpen" x-cloak class="border-t border-border-subtle p-5">
+            <fieldset @disabled(! $customized) class="disabled:opacity-70">
+                @unless ($customized)
+                    <p class="mb-3 text-xs text-text-muted">Bloccate dal formato — usa «Personalizza questo formato».</p>
+                @endunless
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{-- «Qualità di stampa» (glossario B): the nozzle is the secondary detail --}}
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary" for="nozzle">Qualità di stampa</label>
+                        <select id="nozzle" x-model="nozzle"
+                            class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 text-base text-text-primary">
+                            <option value="0.4">Standard (ugello 0.4)</option>
+                            <option value="0.2">Dettaglio fine (ugello 0.2)</option>
+                        </select>
+                    </div>
+
+                    {{-- «Strati di stampa» (glossario B): mm values in mono --}}
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary" for="layer-height">Strati di stampa</label>
+                        <input
+                            id="layer-height"
+                            type="number" step="0.01"
+                            x-model.number="layerHeight"
+                            :placeholder="nozzleRange ? `default ${nozzleRange.layer_default}` : ''"
+                            class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
+                        />
+                        <p class="mt-1.5 text-xs text-text-muted" x-show="nozzleRange">
+                            Spessore di ogni strato, in mm. Con la qualità attuale: da
+                            <span class="mono text-xs" x-text="nozzleRange?.layer_min"></span> a
+                            <span class="mono text-xs" x-text="nozzleRange?.layer_max"></span> mm.
+                            Vuoto = default del profilo stampante.
+                        </p>
+                        @error('parameters.layer_height')
+                            <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- «Adattamento alla misura reale» (glossario B) --}}
+                    <div>
+                        <label class="block text-sm font-medium text-text-secondary" for="xy-comp">Adattamento alla misura reale</label>
+                        <input
+                            id="xy-comp"
+                            type="number" step="0.05"
+                            min="{{ config('product.xy_comp_range_mm.0') }}" max="{{ config('product.xy_comp_range_mm.1') }}"
+                            x-model.number="xyComp"
+                            class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
+                        />
+                        <p class="mt-1.5 text-xs text-text-muted">
+                            Una stampa esce <span class="mono text-xs">~0.1 mm</span> più larga del progetto:
+                            compensiamo noi, in mm per lato (negativo = pezzo più piccolo).
+                            Dimensione effettiva stampata:
+                            <span class="mono text-xs"><span x-text="formatMm(effectiveSize)"></span> mm</span>.
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+
+            {{-- «Spessore del tag NFC» (glossario B) — editable like before, never preset-locked --}}
+            <div x-show="nfc" x-cloak class="mt-4 border-t border-border-subtle pt-4">
+                <label class="block text-sm font-medium text-text-secondary" for="tag-thickness">Spessore del tag NFC</label>
+                <input
+                    id="tag-thickness"
+                    type="number" step="0.05" min="{{ config('product.nfc.tag_thickness_range_mm.0') }}" max="{{ config('product.nfc.tag_thickness_range_mm.1') }}"
+                    x-model.number="tagThickness"
+                    class="mt-1.5 w-32 rounded-control border border-border-strong bg-surface-2 px-3 py-2 font-mono text-base text-text-primary tabular-nums"
+                />
+                <p class="mt-1.5 text-xs text-text-muted">
+                    Misuralo col calibro, adesivo incluso: la tasca viene calcolata sul valore dichiarato, con
+                    <span class="mono text-xs">{{ config('product.nfc.axial_clearance_mm') }} mm</span> di gioco assiale.
+                </p>
+                @error('parameters.tag_thickness')
+                    <p class="mt-1.5 text-xs text-blocked">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+    </div>
+
     {{-- ============ Label + live issues + submit ============ --}}
-    <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800">
-        <label class="block text-sm font-medium" for="label">Nome della targhetta (facoltativo)</label>
+    <div class="rounded-panel border border-border-subtle bg-surface-1 p-5">
+        <label class="block text-sm font-medium text-text-secondary" for="label">Nome della targhetta (facoltativo)</label>
         <input
             id="label"
             type="text"
             wire:model="label"
             maxlength="255"
             placeholder="Es. «Trattoria Da Mario — menù IT»"
-            class="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+            class="mt-1.5 w-full rounded-control border border-border-strong bg-surface-2 px-3 py-2 text-base text-text-primary placeholder:text-text-muted"
         />
-        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Ti aiuta a ritrovarla nello storico della dashboard.</p>
+        <p class="mt-1.5 text-xs text-text-muted">Ti aiuta a ritrovarla nel tuo archivio.</p>
 
         {{-- Non-blocking live validation issues (spec §5.2: BEFORE wasting a job) --}}
         @if ($liveIssues !== [])
-            <div class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100" wire:key="live-issues">
-                <p class="font-semibold">Da sistemare prima di generare:</p>
-                <ul class="mt-1 list-inside list-disc space-y-1">
+            <div class="mt-4 rounded-card border border-warn/30 bg-warn-surface p-3.5 text-sm" wire:key="live-issues">
+                <p class="font-semibold text-warn">Da sistemare prima di generare:</p>
+                <ul class="mt-1 list-inside list-disc space-y-1 text-text-secondary">
                     @foreach ($liveIssues as $field => $messages)
                         @foreach ($messages as $message)
                             <li wire:key="issue-{{ $field }}-{{ $loop->index }}">{{ $message }}</li>
@@ -850,9 +960,9 @@
 
         {{-- Advisories that never block (contract 02: custom + rimmed + engrave) --}}
         @if ($liveWarnings !== [])
-            <div class="mt-4 rounded-lg border border-sky-300 bg-sky-50 p-3 text-sm text-sky-900 dark:border-sky-700 dark:bg-sky-950 dark:text-sky-100" wire:key="live-warnings">
-                <p class="font-semibold">Avvertenze (non bloccanti):</p>
-                <ul class="mt-1 list-inside list-disc space-y-1">
+            <div class="mt-4 rounded-card border border-border-subtle border-l-[3px] border-l-tech bg-surface-2 p-3.5 text-sm" wire:key="live-warnings">
+                <p class="font-semibold text-text-primary">Avvertenze (non bloccanti):</p>
+                <ul class="mt-1 list-inside list-disc space-y-1 text-text-secondary">
                     @foreach ($liveWarnings as $warning)
                         <li wire:key="warning-{{ $loop->index }}">{{ $warning }}</li>
                     @endforeach
@@ -861,9 +971,9 @@
         @endif
 
         @if ($errors->isNotEmpty())
-            <div class="mt-4 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-100" wire:key="submit-errors">
-                <p class="font-semibold">La generazione non è partita:</p>
-                <ul class="mt-1 list-inside list-disc space-y-1">
+            <div class="mt-4 rounded-card border border-blocked/30 bg-blocked-surface p-3.5 text-sm" wire:key="submit-errors">
+                <p class="font-semibold text-blocked">La generazione non è partita:</p>
+                <ul class="mt-1 list-inside list-disc space-y-1 text-text-secondary">
                     @foreach ($errors->all() as $message)
                         <li wire:key="error-{{ $loop->index }}">{{ $message }}</li>
                     @endforeach
@@ -873,8 +983,8 @@
 
         <div class="mt-4 flex items-center gap-3">
             <flux:button wire:click="submit" variant="primary">
-                <span wire:loading.remove wire:target="submit">Genera l'STL</span>
-                <span wire:loading wire:target="submit">Invio in corso…</span>
+                <span wire:loading.remove wire:target="submit">Crea il file di stampa</span>
+                <span wire:loading wire:target="submit">Creazione in corso…</span>
             </flux:button>
         </div>
     </div>
