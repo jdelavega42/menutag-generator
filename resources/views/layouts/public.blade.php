@@ -30,6 +30,12 @@
                 <flux:navbar.item :href="route('home')" :current="request()->routeIs('home')" wire:navigate>
                     Configuratore
                 </flux:navbar.item>
+                @guest
+                    {{-- Promo page in the nav (flussi.md §3) — guests only: registered users have the dashboard. --}}
+                    <flux:navbar.item :href="route('studio-promo')" :current="request()->routeIs('studio-promo')" wire:navigate>
+                        Lo Studio
+                    </flux:navbar.item>
+                @endguest
             </flux:navbar>
 
             <flux:spacer />

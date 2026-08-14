@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'menu-tags.create')->name('home');
 
 // Studio promo page (restyle §5.3, flussi.md §3): the target of every
-// contextual registration CTA. Minimal placeholder for now — R-4 fills it.
+// contextual registration CTA and of the guest nav item.
 Route::view('studio', 'studio-promo')->name('studio-promo');
 
 Route::get('targhette/{menuTag}', function (MenuTag $menuTag) {

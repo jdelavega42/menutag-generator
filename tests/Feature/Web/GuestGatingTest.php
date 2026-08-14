@@ -188,10 +188,17 @@ it('steps back from the essential input to the format cards', function (): void 
         ->assertSet('step', 1);
 });
 
-// --- Registration promo route (placeholder now, filled by R-4) ----------------
+// --- Registration promo route (mockup 04, filled by R-4) ----------------------
 
-it('serves the studio promo placeholder page', function (): void {
+it('serves the studio promo page with the four true benefits', function (): void {
     $this->get(route('studio-promo'))
         ->assertOk()
-        ->assertSee('Lo Studio completo');
+        ->assertSee('Lo Studio completo')
+        ->assertSee('Archivio dei modelli')
+        ->assertSee('Duplica in serie')
+        ->assertSee('Loghi e QR salvati')
+        ->assertSee('Personalizzazione completa')
+        ->assertSee('Crea un account')
+        // The guest→user migration promise (flussi.md §4) must be on the page.
+        ->assertSee('I modelli creati da visitatore ti seguiranno dopo la registrazione.');
 });

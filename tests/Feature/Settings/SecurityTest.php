@@ -17,6 +17,10 @@ class SecurityTest extends TestCase
     {
         parent::setUp();
 
+        // The UI copy is Italian (lang/it.json, restyle R-4): pin the locale
+        // so the rendered-copy assertions below never depend on the local .env.
+        $this->app->setLocale('it');
+
         $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
         Features::twoFactorAuthentication([
@@ -38,10 +42,11 @@ class SecurityTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertSee('Passkeys');
-        $response->assertSee('No passkeys yet');
-        $response->assertSee('Two-factor authentication');
-        $response->assertSee('Enable 2FA');
+        // Italian UI strings from lang/it.json (restyle R-4).
+        $response->assertSee('Passkey');
+        $response->assertSee('Nessuna passkey');
+        $response->assertSee('Autenticazione a due fattori');
+        $response->assertSee('Attiva la 2FA');
     }
 
     public function test_security_settings_page_requires_password_confirmation_when_enabled(): void
@@ -64,10 +69,10 @@ class SecurityTest extends TestCase
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertSee('Update password')
-            ->assertDontSee('Manage your passkeys for passwordless sign-in')
-            ->assertDontSee('Add a passkey to sign in without a password')
-            ->assertDontSee('Two-factor authentication');
+            ->assertSee('Aggiorna la password')
+            ->assertDontSee('Gestisci le passkey per accedere senza password')
+            ->assertDontSee('Aggiungi una passkey per accedere senza password')
+            ->assertDontSee('Autenticazione a due fattori');
     }
 
     public function test_two_factor_authentication_disabled_when_confirmation_abandoned_between_requests(): void
